@@ -15,3 +15,7 @@ Artanys for the commands to promote, playnow, repeat, and remove, and the thumbn
 - %lock/unlock - Lock/Unlock the queue 
 - %repeat - Cycle through repeat options
 - %sub - Substitute a song already in the queue with another song. Can do this at any position
+- %hello and %hug - Friendly banter between Sigma/Kizuna and users
+- %time - Get the current time in UTC or a different timezone
+
+Sigma/Kizuna can now respond to non-bound commands anywhere in the server. This means that music commands will only work in the channels you specify in the config, while other commands will work anywhere. They also respond to mentions!
