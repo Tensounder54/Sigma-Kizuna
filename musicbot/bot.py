@@ -99,6 +99,8 @@ class MusicBot(discord.Client):
 
         self.blacklist = set(load_file(self.config.blacklist_file))
         self.ownerlock = False
+        self.autoassignrole = False
+        self.autorole = None
         self.autoplaylist = load_file(self.config.auto_playlist_file)
         self.downloader = downloader.Downloader(download_folder='audio_cache')
 
@@ -820,24 +822,88 @@ class MusicBot(discord.Client):
         Talk to Sigma-chan!    
         """
         msg = "Hello %s! How are you doing today?" % author.mention
-        return Response(msg, reply=False, delete_after=10)
+        return Response(msg, reply=False, delete_after=30)
 
-    async def cmd_hug(self, author, message):
+    #TODO: use user_mentions provided by the command handler instead of taking message.mentions
+    async def cmd_hug(self, author, user_mentions):
         """
         Usage:
             {command_prefix}hug [recipient]
         Hug somebody!
         If no recipient is specified, Sigma-chan will hug you <3
         """
-        if message.mentions and len(message.mentions) == 1:
-            msg = "%s hugged %s!" % (author.mention, message.mentions[0].mention)
-        elif message.mentions and len(message.mentions) > 1:
-            raise exceptions.CommandError(
-                'You are trying to hug too many people at once! Take it once at a time, please <3' , expire_in=20
-            )
+        if user_mentions and len(user_mentions) == 1:
+            msg = "%s hugged %s!" % (author.mention, user_mentions[0].mention)
+        elif user_mentions and len(user_mentions) > 1:
+            msg = "%s hugged " % author.mention
+            if len(user_mentions) == 2:
+                msg += "%s " % user_mentions[0].mention
+            else:
+                for i in range(len(user_mentions) - 1):
+                    msg += "%s, " % user_mentions[i].mention
+            msg += "and %s" % user_mentions[len(user_mentions) - 1].mention
+            #raise exceptions.CommandError(
+            #    'You are trying to hug too many people at once! Take it once at a time, please <3' , expire_in=20
+            #)
         else:
             msg = "Sigma-chan gives %s a soft hug <:heartmodern:328603582993661982>" % (author.mention)
         return Response(msg, reply=False)
+
+    async def cmd_yikes(self, message):
+        return Response("Yikes! 😬", reply=False, delete_after=30)
+
+    async def cmd_roll(self, author, num=None):
+        if num:
+            try:
+                num = int(num)
+                answer = random.randint(0, num)
+                msg = "%s rolled a " % author.mention + str(answer) 
+                return Response(msg, reply=False, delete_after=30)
+            except ValueError:
+                pass
+        answer = random.randint(0, 100)
+        msg = "%s rolled a " % author.mention + str(answer)
+        return Response(msg, reply=False, delete_after=30)
+
+    @owner_only
+    async def cmd_aar(self, channel, server, role=None):
+        """
+        Usage:
+            {command_prefix}aar [role]
+        Enables auto assign role with a specific role.
+        Owner only.
+        """
+        if role:
+            #Let's find the role
+            role = discord.utils.find(lambda r: r.name == role, server.roles)
+            if role:
+                self.autorole = role
+                #If autorole is enabled we're just changing the role.
+                if self.autoassignrole:
+                    await self.safe_send_message(channel, "Changed autorole", expire_in=20)
+
+                elif not self.autoassignrole:
+                    self.autoassignrole = True
+                    await self.safe_send_message(channel, "Enabled autorole with %s" % role, expire_in=20)
+
+            else:
+                #oops, can't find that role. Try again
+                raise exceptions.CommandError("Invalid role specified.", expire_in=20)
+
+        elif not self.autoassignrole:
+            raise exceptions.CommandError("Autorole is currently disabled. No role specified.", expire_in=20)
+
+        elif self.autoassignrole:
+            self.autoassignrole = False
+            await self.safe_send_message(channel, "Autorole disabled", expire_in=20)
+
+    """ 
+    # Debugging purpose
+    async def cmd_getroles(self, author):
+        for role in author.roles:
+            print(role)
+        return Response("Printed roles to console", reply=False, delete_after=10)
+    """
 
     async def cmd_time(self, timezone=None):
         """
@@ -2416,12 +2482,17 @@ class MusicBot(discord.Client):
         await self.disconnect_all_voice_clients()
         raise exceptions.TerminateSignal
 
+    async def on_member_join(self, member):
+        if self.autorole:
+            await self.add_roles(member, self.autorolename)
+
     async def on_message(self, message):
         await self.wait_until_ready()
 
         message_content = message.content.strip()
         print(message_content)
-        if "<@!281807963147075584>" in message_content:
+        if "<@!281807963147075584>" in message_content and message.author != self.user:
+            #TODO: Redo the image with a safe_send_file 
             msg = ["<:sigmachan:331569185349959681>", "Hello!", "Hiya!", "Sigma-chan reporting for duty!", "Did someone say my name?", "You called for me?", "What's up, %s?" % message.author.mention, "Ahh, you scared me ;_;", "Hiya! :wave:", "Hi there, %s :gift_heart:" % message.author.mention]
             await self.safe_send_message(message.channel, random.choice(msg)) 
 
@@ -2435,11 +2506,9 @@ class MusicBot(discord.Client):
 
         command, *args = message_content.split()  # Uh, doesn't this break prefixes with spaces in them (it doesn't, config parser already breaks them)
         command = command[len(self.config.command_prefix):].lower().strip()
-        #there's probably a better way to do this with a property, although cmds are not objects and are instead functions
-        bound_commands = self.config.bound_commands
         #bound_commands = ["clean", "clear", "lock", "np", "pause", "play", "playnow", "pldump", "promote", "queue", "remove", "repeat", "resume", "search", "shuffle", "skip", "sub", "unlock", "volume"]
 
-        if self.config.bound_channels and message.channel.id not in self.config.bound_channels and not message.channel.is_private and command in bound_commands:
+        if self.config.bound_channels and message.channel.id not in self.config.bound_channels and not message.channel.is_private and command in self.config.bound_commands:
             return  # if I want to log this I just move it under the prefix check
 
         handler = getattr(self, 'cmd_%s' % command, None)
@@ -2550,7 +2619,7 @@ class MusicBot(discord.Client):
                 sentmsg = await self.safe_send_message(
                     message.channel, content,
                     expire_in=response.delete_after if self.config.delete_messages else 0,
-                    also_delete=message if self.config.delete_invoking else None
+                    also_delete=message if self.config.delete_invoking and command not in self.config.retain_commands else None
                 )
 
         except (exceptions.CommandError, exceptions.HelpfulError, exceptions.ExtractionError) as e:
