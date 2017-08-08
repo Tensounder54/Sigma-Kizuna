@@ -2563,7 +2563,8 @@ class MusicBot(discord.Client):
                 print(r.status_code)
                 botsay = r.json()["botsay"]
             except:
-                botsay = "I don't feel like talking right now.""""
+                botsay = "I don't feel like talking right now."
+            """
             await self.safe_send_message(message.channel, msg)
 
         if not message_content.startswith(self.config.command_prefix):
