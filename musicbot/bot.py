@@ -973,6 +973,7 @@ class MusicBot(discord.Client):
        
         #If a timezone is specified let's convert time into that timezone.
         if timezone:
+            timezone = timezone.upper()
             #If UTC is in the timezone we don't need to do any of this conversion stuff
             if "UTC" in timezone:
                     pass
@@ -1029,6 +1030,7 @@ class MusicBot(discord.Client):
         else:
             raise exceptions.CommandError("You did not specify a time!", expire_in=20)
         if timezone1:
+            timezone1 = timezone1.upper()
             try:
                 timezone1 = timezone_dict[timezone1]
             except KeyError:
@@ -1048,6 +1050,7 @@ class MusicBot(discord.Client):
                     raise exceptions.CommandError("Could not parse timezone.", expire_in=20)
                 timezone1_minute = 0
             if timezone2:
+                timezone2 = timezone2.upper()
                 try:
                     timezone2 = timezone_dict[timezone2]
                 except KeyError:
