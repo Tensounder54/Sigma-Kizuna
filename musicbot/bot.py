@@ -15,7 +15,7 @@ import asyncio
 import traceback
 import datetime
 import random
-import requests
+#import requests
 import re
 
 """
@@ -2553,15 +2553,15 @@ class MusicBot(discord.Client):
 
         if "281807963147075584" in message.raw_mentions and message.author != self.user:  
             parsedmessage = re.sub('<@!?\d{18}>', '', message_content).strip()
-            #msg = ["Hello!", "Hiya!", "Let me pull out my pocketknife here...", "Did someone say my name?", "You called for me?", "What's up, %s?" % message.author.mention, "Boo.", "Hi there, %s. Need me to kill anyone?" % message.author.mention]
-            link = "http://api.program-o.com/v2/chatbot/?bot_id=6&say=%s&convo_id=discordbot_1&format=json" % parsedmessage
+            msg = ["Hello!", "Hiya!", "Let me pull out my pocketknife here...", "Did someone say my name?", "You called for me?", "What's up, %s?" % message.author.mention, "Boo.", "Hi there, %s. Need me to kill anyone?" % message.author.mention]
+            """link = "http://api.program-o.com/v2/chatbot/?bot_id=6&say=%s&convo_id=discordbot_1&format=json" % parsedmessage
             try:
                 r = requests.get(link, timeout=10)
                 print(r.status_code)
                 botsay = r.json()["botsay"]
             except:
-                botsay = "I don't feel like talking right now."
-            await self.safe_send_message(message.channel, botsay)
+                botsay = "I don't feel like talking right now.""""
+            await self.safe_send_message(message.channel, msg)
 
         if not message_content.startswith(self.config.command_prefix):
             return
