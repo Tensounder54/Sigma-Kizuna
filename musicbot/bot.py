@@ -913,45 +913,44 @@ class MusicBot(discord.Client):
             await self.purge_from(channel, limit=num, before=message)
             msg = str(num) + " message(s) purged."
             return Response(msg, reply=False, delete_after=20)
-
-    #TODO: Allow timed mutes
+        
     async def cmd_mute(self, message, server, author, channel, mentions, time=None, reason=None):
-        """
-        Usage:
-            {command_prefix}mute [user_mentions] [time] [reason]
-        Mutes the specified users. Length of mute in seconds and reason are optional.
-        """
-        if not message.mentions:
-            raise exceptions.CommandError("Invalid user specified.")
-        if time and not reason and not time.isdigit():
-            reason = time
-            time = None
-        if time:
-            try:
-                float(time)
-            except ValueError:
-                raise exceptions.CommandError("Time provided invalid:\n{}\n".format(time))
-        mutedrole = discord.utils.get(server.roles, name='Muted')
-        if not mutedrole:
-            raise exceptions.CommandError('No Muted role created')
-        for member in message.mentions:
-            if member.id in (self.user.id, author.id, self.config.owner_id):
-                raise exceptions.CommandError("You cannot perform this command on this user.", expire_in=20)
-            try:
-                await self.add_roles(member, mutedrole)
-                await self.server_voice_state(member, mute=True)
-            except discord.Forbidden:
-                raise exceptions.CommandError('Not enough permissions to mute user : {}'.format(member.name))
-            except:
-                raise exceptions.CommandError('Unable to mute user defined:\n{}\n'.format(member.name))
-        await self.safe_send_message(channel, "Muted " + len(message.mentions) + " users.", expire_in=30)
-        if time:
-            await asyncio.sleep(float(time))
+            """
+            Usage:
+                {command_prefix}mute [user_mentions] [time] [reason]
+            Mutes the specified users. Length of mute in seconds and reason are optional.
+            """
+            if not message.mentions:
+                raise exceptions.CommandError("Invalid user specified.")
+            if time and not reason and not time.isdigit():
+                reason = time
+                time = None
+            if time:
+                try:
+                    float(time)
+                except ValueError:
+                    raise exceptions.CommandError("Time provided invalid:\n{}\n".format(time))
+            mutedrole = discord.utils.get(server.roles, name='Muted')
+            if not mutedrole:
+                raise exceptions.CommandError('No Muted role created')
             for member in message.mentions:
-                memberroles = member.roles
-                if mutedrole in memberroles:
-                    await self.remove_roles(member, mutedrole)
-                    await self.server_voice_state(member, mute=False)
+                if member.id in (self.user.id, author.id, self.config.owner_id):
+                    raise exceptions.CommandError("You cannot perform this command on this user.", expire_in=20)
+                try:
+                    await self.add_roles(member, mutedrole)
+                    await self.server_voice_state(member, mute=True)
+                except discord.Forbidden:
+                    raise exceptions.CommandError('Not enough permissions to mute user : {}'.format(member.name))
+                except:
+                    raise exceptions.CommandError('Unable to mute user defined:\n{}\n'.format(member.name))
+            await self.safe_send_message(channel, "Muted " + str(len(message.mentions)) + " users.", expire_in=30)
+            if time:
+                await asyncio.sleep(float(time))
+                for member in message.mentions:
+                    memberroles = member.roles
+                    if mutedrole in memberroles:
+                        await self.remove_roles(member, mutedrole)
+                        await self.server_voice_state(member, mute=False)
 
     async def cmd_unmute(self, message, server, channel, mentions):
         """
@@ -969,7 +968,7 @@ class MusicBot(discord.Client):
                 await self.server_voice_state(member, mute=False)
             else:
                 raise exceptions.CommandError("User not muted!", expire_in=20)
-        await self.safe_send_message(channel, "Muted " + len(message.mentions) + " users.", expire_in=30)
+        await self.safe_send_message(channel, "Muted " + str(len(message.mentions)) + " users.", expire_in=30)
 
     """ 
     # Debugging purpose
