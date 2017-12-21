@@ -2906,7 +2906,7 @@ class MusicBot(discord.Client):
         await self.wait_until_ready()
 
         message_content = message.content.strip()
-        log.info(message_content)
+        #log.info(message_content)
 
         # Personalization of bot
         if "281807963147075584" in message.raw_mentions and message.author != self.user:  
