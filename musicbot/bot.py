@@ -1148,6 +1148,8 @@ class MusicBot(discord.Client):
 
         # t-t-th-th-that's all folks!
 
+###################################################################################################################################
+
     """
 
     Custom Commands
@@ -1707,6 +1709,63 @@ class MusicBot(discord.Client):
             print("Added a user")
         else:
             print("Autorole disabled")
+
+    async def cmd_addteam(self, message, server, mentions, *, args):
+        """
+        Usage:
+            {command_prefix}addteam <user mentions> <teamname>
+
+        Adds selected members to a new team (role created with name specified)
+        """
+
+        if not message.mentions:
+                raise exceptions.CommandError("Invalid user specified.")
+
+        log.info(args)
+        teamname = args
+        team_role_pos = None;
+        #unjenkify this later
+        for role in server.roles: 
+            if "Test Team" in role.name: 
+                team_role_pos = role;
+
+        role_permissions = server.default_role
+        role_permissions = role_permissions.permissions
+        role_permissions.change_nickname = True
+        role_color = '9d0000'
+        role_color = int(role_color, 16)
+        try:
+            role = await self.create_role(server, name=teamname, permissions=role_permissions, colour=discord.Colour(role_color), mentionable=True)
+        except:
+            raise exceptions.CommandError("Creating role failed!")
+
+        await self.move_role(server, role, team_role_pos.position)
+        for member in message.mentions:
+            try:
+                await self.add_roles(member, role)
+            except:
+                raise exceptions.CommandError("Failed to add %s to the role!" % member.name);
+        return Response("Created role and added %s member(s)!" % len(message.mentions), delete_after=30)
+
+    async def cmd_removeteam(self, message, server, role_mentions):
+        """
+        Usage:
+            {command_prefix}removeteam <role mention>
+
+        Removes a team completely
+        """
+        if role_mentions:
+            for role in role_mentions:
+                try:
+                    await self.delete_role(server, role)
+                except:
+                    raise exceptions.CommandError("Could not delete %s!" % role.name)
+                return Response("Deleted %s team(s)" % len(role_mentions), delete_after=30)
+        else:
+            raise exceptions.CommandError("No team specified!")
+
+
+######################################################################################################################################
 
     '''
 
