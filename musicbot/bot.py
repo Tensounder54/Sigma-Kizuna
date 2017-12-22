@@ -1715,14 +1715,13 @@ class MusicBot(discord.Client):
         Usage:
             {command_prefix}addteam <user mentions> <teamname>
 
-        Adds selected members to a new team (role created with name specified)
+        Adds selected members to a new team (role created with name specified). User mentions are optional.
         """
 
-        if not message.mentions:
-                raise exceptions.CommandError("Invalid user specified.")
-
         log.info(args)
-        teamname = args
+        #This is actually the most jenky way to deal with whatever the fudge this bot handles leftover args, but I have no better ideas right now.
+        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
+        teamname = parsedargs
         team_role_pos = None;
         #unjenkify this later
         for role in server.roles: 
@@ -1740,29 +1739,65 @@ class MusicBot(discord.Client):
             raise exceptions.CommandError("Creating role failed!")
 
         await self.move_role(server, role, team_role_pos.position)
-        for member in message.mentions:
-            try:
-                await self.add_roles(member, role)
-            except:
-                raise exceptions.CommandError("Failed to add %s to the role!" % member.name);
+        if message.mentions:
+            for member in message.mentions:
+                try:
+                    await self.add_roles(member, role)
+                except:
+                    raise exceptions.CommandError("Failed to add %s to the role!" % member.name);
         return Response("Created role and added %s member(s)!" % len(message.mentions), delete_after=30)
 
-    async def cmd_removeteam(self, message, server, role_mentions):
+    async def cmd_removeteam(self, message, server):
         """
         Usage:
             {command_prefix}removeteam <role mention>
 
         Removes a team completely
         """
-        if role_mentions:
-            for role in role_mentions:
+        if message.role_mentions:
+            for role in message.role_mentions:
                 try:
                     await self.delete_role(server, role)
                 except:
                     raise exceptions.CommandError("Could not delete %s!" % role.name)
-                return Response("Deleted %s team(s)" % len(role_mentions), delete_after=30)
+                return Response("Deleted %s team(s)" % len(message.role_mentions), delete_after=30)
         else:
             raise exceptions.CommandError("No team specified!")
+
+    async def cmd_addmember(self, message, server, mentions, role_mentions):
+        """
+        Usage:
+            {command_prefix}addmember <user mentions> <role_mentions>
+
+        Adds one or more members to one or more roles.
+        """
+        if not role_mentions or not message.mentions:
+            raise exceptions.CommandError("Invalid arguments specified!")
+        for member in message.mentions:
+            for role in message.role_mentions:
+                try:
+                    await self.add_roles(member, role)
+                except:
+                    raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+        return Response("Added members to roles.", delete_after=30)
+
+    async def cmd_removemember(self, message, server, mentions, role_mentions):
+        """
+        Usage:
+            {command_prefix}removemember <user mentions> <role_mentions>
+
+        Removes one or more members from one or more roles.
+        """
+        if not role_mentions or not message.mentions:
+            raise exceptions.CommandError("Invalid arguments specified!")
+        for member in message.mentions:
+            for role in message.role_mentions:
+                try:
+                    await self.remove_roles(member, role)
+                except:
+                    raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+        return Response("Removed members from roles.", delete_after=30)
+
 
 
 ######################################################################################################################################
