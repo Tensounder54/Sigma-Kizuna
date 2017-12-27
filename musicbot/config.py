@@ -276,6 +276,7 @@ class ConfigDefaults:
     skips_required = 4
     skip_ratio_required = 0.5
     save_videos = True
+    save_gifs = True
     now_playing_mentions = False
     auto_summon = True
     auto_playlist = True
