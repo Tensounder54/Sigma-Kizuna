@@ -12,6 +12,7 @@ import traceback
 import datetime
 import random
 import re
+import urllib
 
 import aiohttp
 import discord
@@ -39,7 +40,7 @@ from .constructs import SkipState, Response, VoiceStateUpdate
 from .utils import load_file, write_file, sane_round_int, fixg, ftimedelta, _func_
 
 from .constants import VERSION as BOTVERSION
-from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
+from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH, GIF_CACHE_PATH
 
 
 load_opus_lib()
@@ -150,6 +151,23 @@ class MusicBot(discord.Client):
             )
 
     def _delete_old_audiocache(self, path=AUDIO_CACHE_PATH):
+        try:
+            shutil.rmtree(path)
+            return True
+        except:
+            try:
+                os.rename(path, path + '__')
+            except:
+                return False
+            try:
+                shutil.rmtree(path)
+            except:
+                os.rename(path + '__', path)
+                return False
+
+        return True
+
+    def _delete_old_gifcache(self, path=GIF_CACHE_PATH):
         try:
             shutil.rmtree(path)
             return True
@@ -827,6 +845,11 @@ class MusicBot(discord.Client):
             else:
                 log.debug("Could not delete old audio cache, moving on.")
 
+        if not self.config.save_gifs and os.path.isdir(GIF_CACHE_PATH): 
+            if self._delete_old_gifcache():
+                log.debug("Deleted old gif cache")
+            else:
+                log.debug("Could not delete old gif cache, moving on.")
 
     async def _scheck_server_permissions(self):
         log.debug("Checking server permissions")
@@ -881,6 +904,27 @@ class MusicBot(discord.Client):
 
             if also_delete and isinstance(also_delete, discord.Message):
                 asyncio.ensure_future(self._wait_delete_msg(also_delete, expire_in))
+
+        return msg
+
+    async def safe_send_file(self, dest, content, fp, *, tts=False, expire_in=0, also_delete=None, quiet=False, filename=None):
+        msg = None
+        try:
+            msg = await self.send_file(dest, fp, content=content, tts=tts)
+
+            if msg and expire_in:
+                asyncio.ensure_future(self._wait_delete_msg(msg, expire_in))
+
+            if also_delete and isinstance(also_delete, discord.Message):
+                asyncio.ensure_future(self._wait_delete_msg(also_delete, expire_in))
+
+        except discord.Forbidden:
+            if not quiet:
+                self.safe_print("Warning: Cannot send message or file to %s, no permission" % dest.name)
+
+        except discord.NotFound:
+            if not quiet:
+                self.safe_print("Warning: Cannot send message or file to %s, invalid channel?" % dest.name)
 
         return msg
 
@@ -1127,6 +1171,8 @@ class MusicBot(discord.Client):
 
         # t-t-th-th-that's all folks!
 
+###################################################################################################################################
+
     """
 
     Custom Commands
@@ -1142,7 +1188,7 @@ class MusicBot(discord.Client):
         msg = "Hello %s! How are you doing today?" % author.mention
         return Response(msg, reply=False, delete_after=30)
 
-    async def cmd_hug(self, author, user_mentions):
+    async def cmd_hug(self, channel, author, user_mentions):
         """
         Usage:
             {command_prefix}hug [recipient]
@@ -1164,7 +1210,16 @@ class MusicBot(discord.Client):
             #)
         else:
             msg = "Sigma-chan gives %s a soft hug <:heartmodern:328603582993661982>" % (author.mention)
-        return Response(msg, reply=False)
+
+        thumbnail = os.path.join('data/gifs/', random.choice(os.listdir('data/gifs')))
+        await self.safe_send_message(channel, msg)
+        
+        '''params = {'api_key' = '', 'tag' = 'hug'}
+        async with aiohttp.ClientSession() as session:
+        async with session.get('https://api.giphy.com/v1/gifs/random', params=params) as resp:
+           do something with the thing idk'''
+
+        await self.safe_send_file(channel, None, thumbnail, expire_in=30)
 
     async def cmd_yikes(self, message):
         return Response("Yikes! 😬", reply=False, delete_after=30)
@@ -1686,6 +1741,98 @@ class MusicBot(discord.Client):
             print("Added a user")
         else:
             print("Autorole disabled")
+
+    async def cmd_addteam(self, message, server, mentions, *, args):
+        """
+        Usage:
+            {command_prefix}addteam <user mentions> <teamname>
+
+        Adds selected members to a new team (role created with name specified). User mentions are optional.
+        """
+
+        log.info(args)
+        #This is actually the most jenky way to deal with whatever the fudge this bot handles leftover args, but I have no better ideas right now.
+        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
+        teamname = parsedargs
+        team_role_pos = None;
+        #unjenkify this later
+        for role in server.roles: 
+            if "Test Team" in role.name: 
+                team_role_pos = role;
+
+        role_permissions = server.default_role
+        role_permissions = role_permissions.permissions
+        role_permissions.change_nickname = True
+        role_color = '9d0000'
+        role_color = int(role_color, 16)
+        try:
+            role = await self.create_role(server, name=teamname, permissions=role_permissions, colour=discord.Colour(role_color), mentionable=True)
+        except:
+            raise exceptions.CommandError("Creating role failed!")
+
+        await self.move_role(server, role, team_role_pos.position)
+        if message.mentions:
+            for member in message.mentions:
+                try:
+                    await self.add_roles(member, role)
+                except:
+                    raise exceptions.CommandError("Failed to add %s to the role!" % member.name);
+        return Response("Created role and added %s member(s)!" % len(message.mentions), delete_after=30)
+
+    async def cmd_removeteam(self, message, server):
+        """
+        Usage:
+            {command_prefix}removeteam <role mention>
+
+        Removes a team completely
+        """
+        if message.role_mentions:
+            for role in message.role_mentions:
+                try:
+                    await self.delete_role(server, role)
+                except:
+                    raise exceptions.CommandError("Could not delete %s!" % role.name)
+                return Response("Deleted %s team(s)" % len(message.role_mentions), delete_after=30)
+        else:
+            raise exceptions.CommandError("No team specified!")
+
+    async def cmd_addmember(self, message, server, mentions, role_mentions):
+        """
+        Usage:
+            {command_prefix}addmember <user mentions> <role_mentions>
+
+        Adds one or more members to one or more roles.
+        """
+        if not role_mentions or not message.mentions:
+            raise exceptions.CommandError("Invalid arguments specified!")
+        for member in message.mentions:
+            for role in message.role_mentions:
+                try:
+                    await self.add_roles(member, role)
+                except:
+                    raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+        return Response("Added members to roles.", delete_after=30)
+
+    async def cmd_removemember(self, message, server, mentions, role_mentions):
+        """
+        Usage:
+            {command_prefix}removemember <user mentions> <role_mentions>
+
+        Removes one or more members from one or more roles.
+        """
+        if not role_mentions or not message.mentions:
+            raise exceptions.CommandError("Invalid arguments specified!")
+        for member in message.mentions:
+            for role in message.role_mentions:
+                try:
+                    await self.remove_roles(member, role)
+                except:
+                    raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+        return Response("Removed members from roles.", delete_after=30)
+
+
+
+######################################################################################################################################
 
     '''
 
@@ -2835,7 +2982,7 @@ class MusicBot(discord.Client):
         return Response("\N{DASH SYMBOL}", delete_after=20)
 
     async def cmd_restart(self, channel):
-        await self.safe_send_message(channel, "\N{WAVING HAND SIGN}")
+        await self.safe_send_message(channel, "Be right back!")
         await self.disconnect_all_voice_clients()
         raise exceptions.RestartSignal()
 
@@ -2906,7 +3053,7 @@ class MusicBot(discord.Client):
         await self.wait_until_ready()
 
         message_content = message.content.strip()
-        log.info(message_content)
+        #log.info(message_content)
 
         # Personalization of bot
         if "281807963147075584" in message.raw_mentions and message.author != self.user:  
