@@ -10,10 +10,11 @@ RUN sudo apt-get update -y
 RUN sudo apt-get install build-essential unzip -y
 RUN sudo add-apt-repository ppa:jonathonf/python-3.6 -y
 RUN sudo apt-get update -y
-RUN sudo apt-get install python3.6 -y
+RUN sudo apt-get install python3.6-dev -y
 RUN sudo apt-get install ffmpeg -y
 RUN sudo apt-get install libopus-dev -y
 RUN sudo apt-get install libffi-dev -y
+RUN sudo apt-get install libsodium -y
 
 # Add project source
 ADD . /usr/src/MusicBot
