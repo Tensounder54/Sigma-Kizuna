@@ -1,7 +1,8 @@
 FROM ubuntu:16.04
 
 # Install Dependencies
-RUN sudo apt-get update \
+RUN apt-get update
+	&& apt-get install sudo -y \
     && sudo apt-get install software-properties-common -y \
     && sudo add-apt-repository ppa:fkrull/deadsnakes -y \
     && sudo add-apt-repository ppa:mc3man/trusty-media -y \
