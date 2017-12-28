@@ -4,8 +4,7 @@ FROM ubuntu:16.04
 RUN apt-get update
 RUN apt-get install sudo -y
 RUN sudo apt-get install software-properties-common -y
-RUN sudo apt-get install curl -y
-RUN sudo add-apt-repository ppa:fkrull/deadsnakes -y
+# RUN sudo add-apt-repository ppa:fkrull/deadsnakes -y
 RUN sudo add-apt-repository ppa:mc3man/trusty-media -y
 RUN sudo apt-get update -y
 RUN sudo apt-get install build-essential unzip -y

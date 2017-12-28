@@ -51,6 +51,7 @@ timezone_dict = {'ACDT': 'UTC+10:30', 'ACST': 'UTC+09:30', 'ACT': 'UTC-05', 'ADT
 
 def find_key(dic, val):
     try:
+        #99% sure there is a less convoluted way to implement this
         key = [k for k, v in timezone_dict.items() if v == val][0]
         return True
     except:
@@ -998,7 +999,7 @@ class MusicBot(discord.Client):
     def run(self, exit=None):
         try:
             if exit:
-                raise self.exit_signal
+                log.info("Success! No compile issues found with the code.")
             self.loop.run_until_complete(self.start(*self.config.auth))
 
         except discord.errors.LoginFailure:
