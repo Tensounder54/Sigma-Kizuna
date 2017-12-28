@@ -1000,7 +1000,7 @@ class MusicBot(discord.Client):
         try:
             if exit_code:
                 log.info("Success! No compile issues found with the code.")
-                exit(0)
+                return True
             self.loop.run_until_complete(self.start(*self.config.auth))
 
         except discord.errors.LoginFailure:

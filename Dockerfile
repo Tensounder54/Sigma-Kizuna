@@ -14,7 +14,7 @@ RUN sudo apt-get install python3.6-dev -y
 RUN sudo apt-get install ffmpeg -y
 RUN sudo apt-get install libopus-dev -y
 RUN sudo apt-get install libffi-dev -y
-RUN sudo apt-get install libsodium -y
+RUN sudo apt-get install libsodium-dev -y
 
 # Add project source
 ADD . /usr/src/MusicBot
