@@ -1000,7 +1000,7 @@ class MusicBot(discord.Client):
         try:
             if exit:
                 log.info("Success! No compile issues found with the code.")
-                await self.start(*self.config.auth)
+                self.start(*self.config.auth)
                 await self.logout()
                 exit(0)
             self.loop.run_until_complete(self.start(*self.config.auth))

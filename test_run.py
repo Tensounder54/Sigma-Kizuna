@@ -352,7 +352,7 @@ def main():
 
         except SyntaxError:
             log.exception("Syntax error (this is a bug, not your fault)")
-            break
+            exit(1)
 
         except ImportError:
             # TODO: if error module is in pip or dpy requirements...
@@ -369,14 +369,14 @@ def main():
                     print()
                     log.critical("You may need to %s to install dependencies." %
                                  ['use sudo', 'run as admin'][sys.platform.startswith('win')])
-                    break
+                    exit(1)
                 else:
                     print()
                     log.info("Ok lets hope it worked")
                     print()
             else:
                 log.exception("Unknown ImportError, exiting.")
-                break
+                exit(1)
 
         except Exception as e:
             if hasattr(e, '__module__') and e.__module__ == 'musicbot.exceptions':
@@ -397,7 +397,7 @@ def main():
                 if any(sys.exc_info()):
                     # How to log this without redundant messages...
                     traceback.print_exc()
-                break
+                exit(1)
 
             asyncio.set_event_loop(asyncio.new_event_loop())
             loops += 1
