@@ -995,8 +995,10 @@ class MusicBot(discord.Client):
         except: pass
 
     # noinspection PyMethodOverriding
-    def run(self):
+    def run(self, exit=None):
         try:
+            if exit:
+                raise self.exit_signal
             self.loop.run_until_complete(self.start(*self.config.auth))
 
         except discord.errors.LoginFailure:
