@@ -345,13 +345,13 @@ def main():
             m = MusicBot()
 
             sh.terminator = ''
-            log.info("Connecting")
+            log.info("Connecting\n")
             sh.terminator = '\n'
 
-            m.run(exit=True)
+            m.run(exit_code=True)
 
         except SyntaxError:
-            log.exception("Syntax error (this is a bug, not your fault)")
+            log.exception("Syntax error in the code, you made a mistake somewhere!")
             exit(1)
 
         except ImportError:

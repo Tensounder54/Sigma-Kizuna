@@ -996,9 +996,9 @@ class MusicBot(discord.Client):
         except: pass
 
     # noinspection PyMethodOverriding
-    def run(self, exit=None):
+    def run(self, exit_code=None):
         try:
-            if exit:
+            if exit_code:
                 log.info("Success! No compile issues found with the code.")
                 exit(0)
             self.loop.run_until_complete(self.start(*self.config.auth))
