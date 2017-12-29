@@ -348,8 +348,7 @@ def main():
             log.info("Connecting\n")
             sh.terminator = '\n'
 
-            if m.run(exit_code=True):
-                break
+            m.run(exit_code=True)
 
         except SyntaxError:
             log.exception("Syntax error in the code, you made a mistake somewhere!")
