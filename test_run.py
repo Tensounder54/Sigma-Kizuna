@@ -349,7 +349,7 @@ def main():
             sh.terminator = '\n'
 
             if m.run(exit_code=True):
-                exit(0)
+                break
 
         except SyntaxError:
             log.exception("Syntax error in the code, you made a mistake somewhere!")
