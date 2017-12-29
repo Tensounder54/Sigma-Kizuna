@@ -397,7 +397,7 @@ def main():
                 if any(sys.exc_info()):
                     # How to log this without redundant messages...
                     traceback.print_exc()
-                exit(1)
+                exit(2)
 
             asyncio.set_event_loop(asyncio.new_event_loop())
             loops += 1
