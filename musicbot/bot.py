@@ -1224,7 +1224,10 @@ class MusicBot(discord.Client):
         else:
             msg = "Sigma-chan gives %s a soft hug <:heartmodern:328603582993661982>" % (author.mention)
 
-        thumbnail = os.path.join('data/gifs/', random.choice(os.listdir('data/gifs')))
+        try:
+            thumbnail = os.path.join('data/gifs/', random.choice(os.listdir('data/gifs')))
+        except:
+            pass
         await self.safe_send_message(channel, msg)
         
         '''params = {'api_key' = '', 'tag' = 'hug'}
