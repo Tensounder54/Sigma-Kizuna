@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/NeonLights10/Sigma-Kizuna.svg?branch=master)](https://travis-ci.org/NeonLights10/Sigma-Kizuna)
+
 # Sigma and Kizuna AI: Two instances of MusicBot/TechnoDJ (v1.9.6_m1)
 
 MusicBot is a Discord music bot written in [Python](https://www.python.org "Python homepage"). It plays requested songs and if the queue becomes empty it will play through a list of existing songs.
