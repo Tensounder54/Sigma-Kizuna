@@ -1765,7 +1765,7 @@ class MusicBot(discord.Client):
         else:
             print("Autorole disabled")
 
-    async def cmd_addteam(self, message, server, mentions, *, args):
+    async def cmd_addrole(self, message, server, mentions, *, args):
         """
         Usage:
             {command_prefix}addteam <user mentions> <teamname>
@@ -1802,7 +1802,7 @@ class MusicBot(discord.Client):
                     raise exceptions.CommandError("Failed to add %s to the role!" % member.name);
         return Response("Created role and added %s member(s)!" % len(message.mentions), delete_after=30)
 
-    async def cmd_removeteam(self, message, server):
+    async def cmd_removerole(self, message, server):
         """
         Usage:
             {command_prefix}removeteam <role mention>
