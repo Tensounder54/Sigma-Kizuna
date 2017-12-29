@@ -13,6 +13,8 @@ import datetime
 import random
 import re
 import urllib
+import errno
+import urllib
 
 import aiohttp
 import discord
@@ -838,7 +840,6 @@ class MusicBot(discord.Client):
         # config/permissions async validate?
         await self._scheck_configs()
 
-
     async def _scheck_ensure_env(self):
         log.debug("Ensuring data folders exist")
         for server in self.servers:
@@ -854,11 +855,21 @@ class MusicBot(discord.Client):
             else:
                 log.debug("Could not delete old audio cache, moving on.")
 
-        if not self.config.save_gifs and os.path.isdir(GIF_CACHE_PATH): 
-            if self._delete_old_gifcache():
-                log.debug("Deleted old gif cache")
-            else:
-                log.debug("Could not delete old gif cache, moving on.")
+        if not os.path.isdir(GIF_CACHE_PATH):
+            try:
+                os.makedirs(GIF_CACHE_PATH)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    log.debug("Directory already exists for some reason!")
+
+        if not os.listdir(GIF_CACHE_PATH):
+            os.chdir(GIF_CACHE_PATH)
+            for i in range(1,5):
+                try:
+                    image=urllib.URLopener()
+                    image.retrieve(GIF_DOWNLOAD_LINK + str(i))
+                except:
+                    log.debug("Error occured while downloading gif")
 
     async def _scheck_server_permissions(self):
         log.debug("Checking server permissions")
@@ -1225,7 +1236,7 @@ class MusicBot(discord.Client):
             msg = "Sigma-chan gives %s a soft hug <:heartmodern:328603582993661982>" % (author.mention)
 
         try:
-            thumbnail = os.path.join('data/gifs/', random.choice(os.listdir('data/gifs')))
+            thumbnail = os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))
         except:
             pass
         await self.safe_send_message(channel, msg)
