@@ -841,7 +841,7 @@ class MusicBot(discord.Client):
         await self._scheck_configs()
 
     async def _scheck_ensure_env(self):
-        log.debug("Ensuring data folders exist")
+        log.info("Ensuring data folders exist")
         for server in self.servers:
             pathlib.Path('data/%s/' % server.id).mkdir(exist_ok=True)
 
@@ -851,25 +851,28 @@ class MusicBot(discord.Client):
 
         if not self.config.save_videos and os.path.isdir(AUDIO_CACHE_PATH):
             if self._delete_old_audiocache():
-                log.debug("Deleted old audio cache")
+                log.info("Deleted old audio cache")
             else:
-                log.debug("Could not delete old audio cache, moving on.")
+                log.error("Could not delete old audio cache, moving on.")
 
         if not os.path.isdir(GIF_CACHE_PATH):
             try:
                 os.makedirs(GIF_CACHE_PATH)
+                log.info("Created data/gifs")
             except OSError as e:
                 if e.errno != errno.EEXIST:
                     log.debug("Directory already exists for some reason!")
 
         if not os.listdir(GIF_CACHE_PATH):
             os.chdir(GIF_CACHE_PATH)
-            for i in range(1,5):
+            gif_slugs = ['BljOdcCY', 'u8wqQ4kU', 'rjXfs8Cl', 'DL6aAhbu']
+            for slug in gif_slugs:
                 try:
+                    log.info("Downloading gifs")
                     image=urllib.URLopener()
-                    image.retrieve(GIF_DOWNLOAD_LINK + str(i))
+                    image.retrieve(GIF_DOWNLOAD_LINK + gif_slugs[i])
                 except:
-                    log.debug("Error occured while downloading gif")
+                    log.error("Error occured while downloading gif")
 
     async def _scheck_server_permissions(self):
         log.debug("Checking server permissions")
