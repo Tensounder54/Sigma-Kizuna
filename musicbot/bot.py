@@ -1222,6 +1222,11 @@ class MusicBot(discord.Client):
         Hug somebody!
         If no recipient is specified, Sigma-chan will hug you <3
         """
+        try:
+            thumbnail = os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))
+        except:
+            pass
+            
         if user_mentions and len(user_mentions) == 1:
             msg = "%s hugged %s!" % (author.mention, user_mentions[0].mention)
         elif user_mentions and len(user_mentions) > 1:
@@ -1238,10 +1243,6 @@ class MusicBot(discord.Client):
         else:
             msg = "Sigma-chan gives %s a soft hug <:heartmodern:328603582993661982>" % (author.mention)
 
-        try:
-            thumbnail = os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))
-        except:
-            pass
         await self.safe_send_message(channel, msg)
         
         '''params = {'api_key' = '', 'tag' = 'hug'}
