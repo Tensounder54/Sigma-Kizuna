@@ -4,4 +4,3 @@ youtube_dl
 psutil
 colorlog
 cffi --only-binary all; sys_platform == 'win32'
-

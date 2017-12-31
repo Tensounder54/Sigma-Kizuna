@@ -2,6 +2,7 @@ language: python
 python:
     - "3.6"
 sudo: enabled
+cache: pip
 
 before_install:
   - sudo apt-get -qq update
