@@ -1,7 +1,5 @@
 '''
-
 If this is running then python is obviously installed, but we need to make sure that python3 is installed.
-
 What we need to do:
     0. (optional) Check disk space
         0.1: The same env checks in run.py?
@@ -19,11 +17,9 @@ What we need to do:
     4: Git clone and clean out non arch related stuff (run scripts, bins/ on non-windows)
     5: Install requirements.txt packages (if everything is ok then no errors should occur)
     6. Copy configs and prompt the user for something (maybe)
-
 The OSX specific steps might be a bit different so we just need to pay special attention to those steps
 Remember to make sure the user knows the script might prompt for password
 Print the command beforehand just so they know whats happening
-
 When the script runs the user should be greeted with some text and a press [enter/whatever] to continue prompt
 '''
 
@@ -38,6 +34,7 @@ import platform
 import tempfile
 import traceback
 import subprocess
+import argparse
 
 from glob import glob
 from shutil import rmtree
@@ -50,6 +47,11 @@ except ImportError:
     # noinspection PyUnresolvedReferences
     from urllib2 import urlopen, Request
     from urllib import urlretrieve
+
+# Arguments
+ap = argparse.ArgumentParser()
+ap.add_argument('--dir', help='the name of the directory to install to (default: MusicBot)')
+args = ap.parse_args()
 
 # Logging setup goes here
 
@@ -71,7 +73,12 @@ if SYS_PLATFORM == 'linux2':
     SYS_PLATFORM = 'linux'
 
 TEMP_DIR = tempfile.TemporaryDirectory(prefix='musicbot-')
-PY_BUILD_DIR = os.path.join(TEMP_DIR, "Python-%s" % TARGET_PY_VERSION)
+try:
+    PY_BUILD_DIR = os.path.join(TEMP_DIR, "Python-%s" % TARGET_PY_VERSION)
+except TypeError:  # expected str, bytes or os.PathLike object, not TemporaryDirectory
+    PY_BUILD_DIR = os.path.join(TEMP_DIR.name, "Python-%s" % TARGET_PY_VERSION)
+
+INSTALL_DIR = args.dir if args.dir is not None else 'MusicBot'
 
 GET_PIP = "https://bootstrap.pypa.io/get-pip.py"
 
@@ -113,13 +120,18 @@ def find_library(libname):
 
     # TODO: This
 
+def yes_no(question):
+    while True:  # spooky
+        ri = raw_input('{} (y/n): '.format(question))
+        if ri.lower() in ['yes', 'y']: return True
+        elif ri.lower() in ['no', 'n']: return False
+
 
 """
 Finding lib dev headers:
     1. Get include dirs and search for headers
         "echo | gcc -xc++ -E -v -" and parse for include dirs
         linux subprocess.check_output("find /usr[/local]/include -iname 'ffi.h'", shell=True) (find /usr/include /usr/local/include ...?)
-
     2. Have gcc deal with it and check the error output
         gcc -lffi (Fail: cannot find -lffi) vs (Success: ...  undefined reference to `main')
 """
@@ -495,15 +507,21 @@ class EnsurePip(SetupTask):
 
 class GitCloneMusicbot(SetupTask):
     GIT_URL = "https://github.com/Just-Some-Bots/MusicBot.git"
-    GIT_CMD = "git clone --depth 10 --no-single-branch %s MusicBot" % GIT_URL
-    # TODO: Folder name cmd arg
+    GIT_CMD = "git clone --depth 10 --no-single-branch %s %s" % (GIT_URL, INSTALL_DIR)
 
     def download(self):
-        # TODO: if os.path.exists('MusicBot'): i'm triggered
+        print("Cloning files using Git...")
+        if os.path.isdir(INSTALL_DIR):
+            r = yes_no('A folder called %s already exists here. Overwrite?' % INSTALL_DIR)
+            if r is False:
+                print('Exiting. Use the --dir parameter when running this script to specify a different folder.')
+                sys.exit(1)
+            else:
+                os.rmdir(INSTALL_DIR)
         subprocess.check_call(self.GIT_CMD.split())
 
     def setup(self, data):
-        os.chdir('MusicBot')
+        os.chdir(INSTALL_DIR)
 
         import pip
         pip.main("install --upgrade -r requirements.txt".split())
@@ -547,11 +565,17 @@ class SetupMusicbot(SetupTask):
 
 
 def preface():
-    print("This is where the text goes")
+    print(" MusicBot Bootstrapper (v0.1) ".center(50, '#'))
+    print("This script will install the MusicBot into a folder called '%s' in your current directory." % INSTALL_DIR,
+          "\nDepending on your system and environment, several packages and dependencies will be installed.",
+          "\nTo ensure there are no issues, you should probably run this script as an administrator.")
+    print()
     raw_input("Press enter to begin. ")
+    print()
 
 
 def main():
+    preface()
     print("Bootstrapping MusicBot on Python %s." % '.'.join(list(map(str, PY_VERSION))))
 
     EnsurePython.run()
@@ -570,7 +594,9 @@ def main():
 if __name__ == '__main__':
     try:
         main()
-    except:
+    except SystemExit:
+        pass
+    except Exception:
         traceback.print_exc()
         # noinspection PyUnboundLocalVariable
         raw_input("An error has occured, press enter to exit. ")

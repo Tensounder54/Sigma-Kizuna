@@ -112,6 +112,7 @@ class MusicPlayer(EventEmitter, Serializable):
         self.state = MusicPlayerState.STOPPED
         self.repeatState = MusicPlayerRepeatState.NONE
         self.skip_state = None
+        self.songs_played = 0
 
         self._volume = bot.config.default_volume
         self._play_lock = asyncio.Lock()
@@ -318,6 +319,7 @@ class MusicPlayer(EventEmitter, Serializable):
                 self._current_player.start()
 
                 self.emit('play', player=self, entry=entry)
+                self.songs_played += 1
 
     def _monkeypatch_player(self, player):
         original_buff = player.buff
