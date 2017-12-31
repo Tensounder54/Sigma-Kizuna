@@ -14,7 +14,7 @@ import random
 import re
 import urllib
 import errno
-import urllib
+import psutil
 
 import aiohttp
 import discord
@@ -72,6 +72,8 @@ class MusicBot(discord.Client):
         self.init_ok = False
         self.cached_app_info = None
         self.last_status = None
+        self.uptime = time.time()
+        self.message_count = 0
 
         self.config = Config(config_file)
         self.permissions = Permissions(perms_file, grant_all=[self.config.owner_id])
@@ -1226,7 +1228,7 @@ class MusicBot(discord.Client):
             thumbnail = os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))
         except:
             pass
-            
+
         if user_mentions and len(user_mentions) == 1:
             msg = "%s hugged %s!" % (author.mention, user_mentions[0].mention)
         elif user_mentions and len(user_mentions) > 1:
@@ -1783,7 +1785,7 @@ class MusicBot(discord.Client):
         else:
             print("Autorole disabled")
 
-    async def cmd_addrole(self, message, server, mentions, *, args):
+    async def cmd_addrole(self, message, server, mentions, args):
         """
         Usage:
             {command_prefix}addteam <user mentions> <teamname>
@@ -1794,12 +1796,18 @@ class MusicBot(discord.Client):
         log.info(args)
         #This is actually the most jenky way to deal with whatever the fudge this bot handles leftover args, but I have no better ideas right now.
         parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
-        teamname = parsedargs
-        team_role_pos = None;
-        #unjenkify this later
-        for role in server.roles: 
-            if "Test Team" in role.name: 
-                team_role_pos = role;
+        if parsedargs:
+            rolename = parsedargs
+            role_pos = None;
+        else:
+            raise exceptions.CommandError("Invalid arguments specified, or order is incorrect!")
+        
+        role_pos = server.roles[len(server.roles)-1]:
+        for role in server.roles:
+            #probably shouldn't assume they put their Muted role at the bottom but it's ok
+            #since we default just put it above @everyone!
+            if role.name == "Muted":
+                role_pos = server.roles[len(server.roles)-2]:
 
         role_permissions = server.default_role
         role_permissions = role_permissions.permissions
@@ -1811,13 +1819,18 @@ class MusicBot(discord.Client):
         except:
             raise exceptions.CommandError("Creating role failed!")
 
-        await self.move_role(server, role, team_role_pos.position)
+        try:
+            await self.move_role(server, role, team_role_pos.position)
+        except:
+            await self.delete_role(server, role)
+            raise exceptions.CommandError("Could not move role!")
+
         if message.mentions:
             for member in message.mentions:
                 try:
                     await self.add_roles(member, role)
                 except:
-                    raise exceptions.CommandError("Failed to add %s to the role!" % member.name);
+                    raise exceptions.CommandError("Role created, but failed to add %s to the role." % member.name);
         return Response("Created role and added %s member(s)!" % len(message.mentions), delete_after=30)
 
     async def cmd_removerole(self, message, server):
@@ -1871,9 +1884,32 @@ class MusicBot(discord.Client):
                     raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
         return Response("Removed members from roles.", delete_after=30)
 
-    async def cmd_testleftover(self, message, leftover_args):
-        for arg in leftover_args:
-            log.info(arg);
+    async def cmd_stats(self, channel, player):
+        """
+        Usage:
+            {command_prefix}stats
+        Displays bot stats.
+        """
+        msg = discord.Embed(colour=0x1abc9c)
+        msg.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
+        msg.add_field(name="Author", value="Neon#4792")
+        msg.add_field(name="BotID", value=self.user.id)
+        msg.add_field(name="Songs Played", value=player.songs_played)
+        msg.add_field(name="Messages", value=str(self.message_count) + ' (' + '%.2f'%(self.message_count / (time.time()-self.uptime)) +'/sec)')
+        process = psutil.Process(os.getpid())
+        mem = process.get_memory_info()[0] / float(2 ** 20)
+        msg.add_field(name="Memory Usage", value='%.2f'%(mem) + "MB")
+        ctime = float(time.time()-self.uptime)
+        day = ctime // (24 * 3600)
+        ctime = ctime % (24 * 3600)
+        hour = ctime // 3600
+        ctime %= 3600
+        minutes = ctime // 60
+        msg.add_field(name="Uptime", value="%d days\n%d hours\n%d minutes" % (day, hour, minutes))
+        msg.set_thumbnail(url=self.user.avatar_url)
+        msg.set_footer(text="Sugoi!")
+        await self.send_message(channel, embed=msg)
+
 
 
 ######################################################################################################################################
@@ -3096,6 +3132,7 @@ class MusicBot(discord.Client):
     async def on_message(self, message):
         await self.wait_until_ready()
 
+        self.message_count += 1
         message_content = message.content.strip()
         #log.info(message_content)
 
