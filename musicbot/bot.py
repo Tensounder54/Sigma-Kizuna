@@ -1802,25 +1802,24 @@ class MusicBot(discord.Client):
         else:
             raise exceptions.CommandError("Invalid arguments specified, or order is incorrect!")
         
-        role_pos = server.roles[len(server.roles)-1]:
+        role_pos = server.role_hierarchy[len(server.role_hierarchy)-1]
         for role in server.roles:
             #probably shouldn't assume they put their Muted role at the bottom but it's ok
             #since we default just put it above @everyone!
             if role.name == "Muted":
-                role_pos = server.roles[len(server.roles)-2]:
+                role_pos = server.role_hierarchy[len(server.role_hierarchy)-2]
 
         role_permissions = server.default_role
         role_permissions = role_permissions.permissions
         role_permissions.change_nickname = True
-        role_color = '9d0000'
-        role_color = int(role_color, 16)
+
         try:
-            role = await self.create_role(server, name=teamname, permissions=role_permissions, colour=discord.Colour(role_color), mentionable=True)
+            role = await self.create_role(server, name=rolename, permissions=role_permissions, colour=discord.Colour(int('9d0000', 16)), mentionable=True)
         except:
             raise exceptions.CommandError("Creating role failed!")
 
         try:
-            await self.move_role(server, role, team_role_pos.position)
+            await self.move_role(server, role, role_pos.position)
         except:
             await self.delete_role(server, role)
             raise exceptions.CommandError("Could not move role!")
