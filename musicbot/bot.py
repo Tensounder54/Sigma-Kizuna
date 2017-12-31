@@ -2139,7 +2139,7 @@ class MusicBot(discord.Client):
             usr = user_mentions[0]
             return Response("%s's id is `%s`" % (usr.name, usr.id), reply=True, delete_after=35)
 
-     async def cmd_save(self, player):
+    async def cmd_save(self, player):
         """
         Usage:
             {command_prefix}save
