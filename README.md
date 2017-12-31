@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/NeonLights10/Sigma-Kizuna.svg?branch=master)](https://travis-ci.org/NeonLights10/Sigma-Kizuna)
+[![Build Status](https://travis-ci.org/NeonLights10/Sigma-Kizuna.svg?branch=master)](https://travis-ci.org/NeonLights10/Sigma-Kizuna) 
+[![GitHub release](https://img.shields.io/github/release/NeonLights10/Sigma-Kizuna.svg?style=flat-square)](https://github.com/Just-Some-Bots/MusicBot/wiki)
 
 # Sigma and Kizuna AI: Two instances of MusicBot/TechnoDJ (v1.9.6_m4)
 
