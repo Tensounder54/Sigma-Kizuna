@@ -880,11 +880,13 @@ class MusicBot(discord.Client):
         if not os.listdir(GIF_CACHE_PATH):
             os.chdir(GIF_CACHE_PATH)
             gif_slugs = ['BljOdcCY', 'u8wqQ4kU', 'rjXfs8Cl', 'DL6aAhbu']
+            log.info("Downloading gifs")
             for slug in gif_slugs:
                 try:
-                    log.info("Downloading gifs")
-                    image=urllib.URLopener()
-                    image.retrieve(GIF_DOWNLOAD_LINK + gif_slugs[slug])
+                    url = 'https://neon.s-ul.eu/gifs/' + slug
+                    file_name = slug + '.gif'
+                    with urllib.request.urlopen(url) as response, open(file_name, 'wb') as out_file:
+                        shutil.copyfileobj(response, out_file)
                 except:
                     log.error("Error occured while downloading gif")
 
