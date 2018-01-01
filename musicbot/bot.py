@@ -756,8 +756,8 @@ class MusicBot(discord.Client):
                 name = u'{}{}'.format(prefix, entry.title)[:128]
                 game = discord.Game(name=name)
 
-            else:
-                game = discord.Game(type=0, name=self.config.status_message.strip()[:128])
+        else:
+            game = discord.Game(type=0, name=self.config.status_message.strip()[:128])
 
         async with self.aiolocks[_func_()]:
             if game != self.last_status:
@@ -2019,7 +2019,8 @@ class MusicBot(discord.Client):
         msg.add_field(name="Songs Played", value=player.songs_played)
         msg.add_field(name="Messages", value=str(self.message_count) + ' (' + '%.2f'%(self.message_count / (time.time()-self.uptime)) +'/sec)')
         process = psutil.Process(os.getpid())
-        mem = process.get_memory_info()[0] / float(2 ** 20)
+        mem = process.memory_full_info()
+        mem = mem.uss / 1000000
         msg.add_field(name="Memory Usage", value='%.2f'%(mem) + "MB")
         ctime = float(time.time()-self.uptime)
         day = ctime // (24 * 3600)
