@@ -1974,14 +1974,15 @@ class MusicBot(discord.Client):
         else:
             raise exceptions.CommandError("No team specified!")
 
-    async def cmd_addmember(self, message, server, mentions, role_mentions):
+    #TODO: make it not rely on role mentions because that's dumb and notifies people
+    async def cmd_addmember(self, message, server):
         """
         Usage:
             {command_prefix}addmember <user mentions> <role_mentions>
 
         Adds one or more members to one or more roles.
         """
-        if not role_mentions or not message.mentions:
+        if not message.role_mentions or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
             for role in message.role_mentions:
@@ -1991,14 +1992,14 @@ class MusicBot(discord.Client):
                     raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
         return Response("Added members to roles.", delete_after=30)
 
-    async def cmd_removemember(self, message, server, mentions, role_mentions):
+    async def cmd_removemember(self, message, server):
         """
         Usage:
             {command_prefix}removemember <user mentions> <role_mentions>
 
         Removes one or more members from one or more roles.
         """
-        if not role_mentions or not message.mentions:
+        if not message.role_mentions or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
             for role in message.role_mentions:
