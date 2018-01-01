@@ -884,7 +884,7 @@ class MusicBot(discord.Client):
                 try:
                     log.info("Downloading gifs")
                     image=urllib.URLopener()
-                    image.retrieve(GIF_DOWNLOAD_LINK + gif_slugs[i])
+                    image.retrieve(GIF_DOWNLOAD_LINK + gif_slugs[slug])
                 except:
                     log.error("Error occured while downloading gif")
 
