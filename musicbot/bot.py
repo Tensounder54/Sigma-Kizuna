@@ -1975,38 +1975,58 @@ class MusicBot(discord.Client):
             raise exceptions.CommandError("No team specified!")
 
     #TODO: make it not rely on role mentions because that's dumb and notifies people
-    async def cmd_addmember(self, message, server):
+    async def cmd_addmember(self, message, server, args):
         """
         Usage:
-            {command_prefix}addmember <user mentions> <role_mentions>
+            {command_prefix}addmember <user mentions> (role mentions) (role name)
 
-        Adds one or more members to one or more roles.
+        Adds one or more members to one or more roles. You can choose to use either role mentions (to make people angry) or just the name of the role itself.
         """
-        if not message.role_mentions or not message.mentions:
+        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
+        parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
+        if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
-            for role in message.role_mentions:
-                try:
-                    await self.add_roles(member, role)
-                except:
-                    raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+            if parsedargs:
+                for role in server.roles:
+                    if parsedargs == role.name:
+                        try:
+                            await self.add_roles(member, role)
+                        except:
+                            raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+            elif message.role_mentions:
+                for role in message.role_mentions:
+                    try:
+                        await self.add_roles(member, role)
+                    except:
+                        raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
         return Response("Added members to roles.", delete_after=30)
 
     async def cmd_removemember(self, message, server):
         """
         Usage:
-            {command_prefix}removemember <user mentions> <role_mentions>
+            {command_prefix}removemember <user mentions> (role mentions) (role name)
 
-        Removes one or more members from one or more roles.
+        Removes one or more members from one or more roles. You can choose to use either role mentions (to make people angry) or just the name of the role itself.
         """
-        if not message.role_mentions or not message.mentions:
+        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
+        parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
+        if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
-            for role in message.role_mentions:
-                try:
-                    await self.remove_roles(member, role)
-                except:
-                    raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+            if parsedargs:
+                for role in server.roles:
+                    if parsedargs == role.name:
+                        try:
+                            await self.remove_roles(member, role)
+                        except:
+                            raise exceptions.CommandError("Failed to remove %s to %s" % (member.name, role.name))
+            elif message.role_mentions:
+                for role in message.role_mentions:
+                    try:
+                        await self.remove_roles(member, role)
+                    except:
+                        raise exceptions.CommandError("Failed to remove %s to %s" % (member.name, role.name))
         return Response("Removed members from roles.", delete_after=30)
 
     async def cmd_stats(self, channel, player):
