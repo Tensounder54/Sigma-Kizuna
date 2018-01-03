@@ -1987,8 +1987,8 @@ class MusicBot(discord.Client):
         """
         args = ' '.join(leftover_args)
         log.info(args)
-        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
-        parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
+        parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
+        parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
         log.info(parsedargs)
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
@@ -2019,8 +2019,8 @@ class MusicBot(discord.Client):
         """
         args = ' '.join(leftover_args)
         log.info(args)
-        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
-        parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
+        parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
+        parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
