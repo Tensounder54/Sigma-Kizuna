@@ -1912,7 +1912,7 @@ class MusicBot(discord.Client):
         else:
             print("Autorole disabled")
 
-    async def cmd_addrole(self, message, server, mentions, args):
+    async def cmd_addrole(self, message, server, mentions, leftover_args):
         """
         Usage:
             {command_prefix}addteam <user mentions> <teamname>
@@ -1920,9 +1920,11 @@ class MusicBot(discord.Client):
         Adds selected members to a new team (role created with name specified). User mentions are optional.
         """
 
+        args = ' '.join(leftover_args)
         log.info(args)
         #This is actually the most jenky way to deal with whatever the fudge this bot handles leftover args, but I have no better ideas right now.
         parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
+        log.info(parsedargs)
         if parsedargs:
             rolename = parsedargs
             role_pos = None;
@@ -1959,7 +1961,7 @@ class MusicBot(discord.Client):
                     raise exceptions.CommandError("Role created, but failed to add %s to the role." % member.name);
         return Response("Created role and added %s member(s)!" % len(message.mentions), delete_after=30)
 
-    async def cmd_removerole(self, message, server):
+    async def cmd_removerole(self, message, server, role_mentions):
         """
         Usage:
             {command_prefix}removeteam <role mention>
@@ -1976,13 +1978,14 @@ class MusicBot(discord.Client):
         else:
             raise exceptions.CommandError("No team specified!")
 
-    async def cmd_addmember(self, message, server, args):
+    async def cmd_addmember(self, message, server, role_mentions, leftover_args):
         """
         Usage:
             {command_prefix}addmember <user mentions> (role mentions) (role name)
 
         Adds one or more members to one or more roles. You can choose to use either role mentions (to make people angry) or just the name of the role itself.
         """
+        args = ' '.join(leftover_args)
         parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
         parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
         if (not message.role_mentions and not parsedargs) or not message.mentions:
@@ -1990,11 +1993,13 @@ class MusicBot(discord.Client):
         for member in message.mentions:
             if parsedargs:
                 for role in server.roles:
-                    if parsedargs == role.name:
+                    if re.search('^' + parsedargs + '$', role.name):
                         try:
                             await self.add_roles(member, role)
                         except:
                             raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
+                    else:
+                        raise exceptions.CommandError("Role not found! Did you spell it wrong?")
             elif message.role_mentions:
                 for role in message.role_mentions:
                     try:
@@ -2003,13 +2008,15 @@ class MusicBot(discord.Client):
                         raise exceptions.CommandError("Failed to add %s to %s" % (member.name, role.name))
         return Response("Added members to roles.", delete_after=30)
 
-    async def cmd_removemember(self, message, server):
+    async def cmd_removemember(self, message, server, role_mentions, mentions, leftover_args):
         """
         Usage:
             {command_prefix}removemember <user mentions> (role mentions) (role name)
 
         Removes one or more members from one or more roles. You can choose to use either role mentions (to make people angry) or just the name of the role itself.
         """
+        args = ' '.join(leftover_args)
+        log.info(args)
         parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
         parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
         if (not message.role_mentions and not parsedargs) or not message.mentions:
@@ -2017,11 +2024,13 @@ class MusicBot(discord.Client):
         for member in message.mentions:
             if parsedargs:
                 for role in server.roles:
-                    if parsedargs == role.name:
+                    if re.search('^' + parsedargs + '$', role.name):
                         try:
                             await self.remove_roles(member, role)
                         except:
                             raise exceptions.CommandError("Failed to remove %s to %s" % (member.name, role.name))
+                    else:
+                        raise exceptions.CommandError("Role not found! Did you spell it wrong?")
             elif message.role_mentions:
                 for role in message.role_mentions:
                     try:
