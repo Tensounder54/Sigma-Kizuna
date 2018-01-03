@@ -80,6 +80,8 @@ class MusicBot(discord.Client):
         self.last_status = None
         self.uptime = time.time()
         self.message_count = 0
+        self.autoassignrole = False
+        self.autorole = {"default": "default"}
 
         self.config = Config(config_file)
         self.permissions = Permissions(perms_file, grant_all=[self.config.owner_id])
