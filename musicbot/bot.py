@@ -1923,7 +1923,7 @@ class MusicBot(discord.Client):
         args = ' '.join(leftover_args)
         log.info(args)
         #This is actually the most jenky way to deal with whatever the fudge this bot handles leftover args, but I have no better ideas right now.
-        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
+        parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
         log.info(parsedargs)
         if parsedargs:
             rolename = parsedargs
@@ -1986,8 +1986,10 @@ class MusicBot(discord.Client):
         Adds one or more members to one or more roles. You can choose to use either role mentions (to make people angry) or just the name of the role itself.
         """
         args = ' '.join(leftover_args)
-        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
-        parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
+        log.info(args)
+        parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
+        parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
+        log.info(parsedargs)
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
@@ -2017,8 +2019,8 @@ class MusicBot(discord.Client):
         """
         args = ' '.join(leftover_args)
         log.info(args)
-        parsedargs = re.sub('<@!?\d{18}>', '', args).strip()
-        parsedargs = re.sub('<@&!?\d{18}>', '', args).strip()
+        parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
+        parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
