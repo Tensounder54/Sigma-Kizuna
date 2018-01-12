@@ -1562,8 +1562,8 @@ class MusicBot(discord.Client):
 
         Removes a song from the queue at the given position, where the position is a number from {command_prefix}queue.
         """
-        if self.ownerlock:
-            raise exceptions.PermissionsError("This bot has been locked by the owner")
+        #if self.ownerlock:
+        #    raise exceptions.PermissionsError("This bot has been locked by the owner")
 
         if not player.playlist.entries:
             raise exceptions.CommandError("There are no songs queued.", expire_in=20)
@@ -1927,11 +1927,13 @@ class MusicBot(discord.Client):
             raise exceptions.CommandError("Invalid arguments specified, or order is incorrect!")
         
         role_pos = server.role_hierarchy[len(server.role_hierarchy)-1]
-        for role in server.roles:
+        '''for role in server.roles:
             #probably shouldn't assume they put their Muted role at the bottom but it's ok
             #since we default just put it above @everyone!
             if role.name == "Muted":
                 role_pos = server.role_hierarchy[len(server.role_hierarchy)-2]
+
+            #and I quote: this was a dumb idea'''
 
         role_permissions = server.default_role
         role_permissions = role_permissions.permissions
@@ -3319,6 +3321,11 @@ class MusicBot(discord.Client):
 
         if self.config.bound_channels and message.channel.id not in self.config.bound_channels and not message.channel.is_private and command in self.config.bound_commands:
             return  # if I want to log this I just move it under the prefix check
+        
+        #log.info(message.author.voice_channel.id)
+        #log.info(self.voice_client.server.channel.id)
+        #if message.author.voice_channel.id and command in self.config.bound_commands and message.author.voice_channel.id not in self.
+        #    return  # Experimental reimplementation of preventing commands from working unless you are in the VC
 
         if message.author == self.user:
             log.warning("Ignoring command from myself ({})".format(message.content))
