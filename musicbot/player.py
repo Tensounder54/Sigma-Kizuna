@@ -140,6 +140,8 @@ class MusicPlayer(EventEmitter, Serializable):
         self.emit('entry-added', player=self, playlist=playlist, entry=entry)
 
     def skip(self):
+        if self.is_repeatSingle:
+            self.skipRepeat = True;
         self._kill_current_player()
 
     def stop(self):
@@ -200,6 +202,12 @@ class MusicPlayer(EventEmitter, Serializable):
 
     def _playback_finished(self):
         entry = self._current_entry
+
+        if self.is_repeatAll or (self.is_repeatSingle and not self.skipRepeat):
+            self.playlist._add_entry(entry)
+            if self.is_repeatSingle:
+                self.playlist.promote_last()
+        self.skipRepeat = False
 
         if self._current_player:
             self._current_player.after = None
