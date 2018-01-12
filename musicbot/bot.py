@@ -1237,13 +1237,16 @@ class MusicBot(discord.Client):
         msg = "Hello %s! How are you doing today?" % author.mention
         return Response(msg, reply=False, delete_after=30)
 
-    async def cmd_hug(self, channel, author, user_mentions, thumbnail= os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))):
+    async def cmd_hug(self, channel, author, user_mentions):
         """
         Usage:
             {command_prefix}hug [recipient]
         Hug somebody!
         If no recipient is specified, Sigma-chan will hug you <3
         """
+        thumbnail = os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))
+        time.sleep(.2) #welcome to jenky solutions part 10
+
         if user_mentions and len(user_mentions) == 1:
             msg = "%s hugged %s!" % (author.mention, user_mentions[0].mention)
         elif user_mentions and len(user_mentions) > 1:
