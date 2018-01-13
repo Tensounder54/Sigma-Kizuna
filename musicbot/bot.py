@@ -1950,8 +1950,7 @@ class MusicBot(discord.Client):
         try:
             await self.move_role(server, role, role_pos.position)
         except:
-            await self.delete_role(server, role)
-            raise exceptions.CommandError("Could not move role!")
+            log.error("Could not move role.")
 
         if message.mentions:
             for member in message.mentions:
