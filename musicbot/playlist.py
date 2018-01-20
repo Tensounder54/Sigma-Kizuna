@@ -78,6 +78,7 @@ class Playlist(EventEmitter, Serializable):
 
         # TODO: Extract this to its own function
         if info['extractor'] in ['generic', 'Dropbox']:
+            log.debug('Detected a generic extractor, or Dropbox')
             try:
                 headers = await get_header(self.bot.aiosession, info['url'])
                 content_type = headers.get('CONTENT-TYPE')
@@ -93,9 +94,9 @@ class Playlist(EventEmitter, Serializable):
                         # How does a server say `application/ogg` what the actual fuck
                         raise ExtractionError("Invalid content type \"%s\" for url %s" % (content_type, song_url))
 
-                elif content_type.startswith('text/html'):
-                    log.warning("Got text/html for content-type, this might be a stream. Attempting to stream.")
-                    return await self.add_stream_entry(song_url, info=info, **meta) # TODO: Check for shoutcast/icecast
+                elif content_type.startswith('text/html') and info['extractor'] == 'generic':
+                    log.warning("Got text/html for content-type, this might be a stream.")
+                    return await self.add_stream_entry(song_url, info=info, **meta)  # TODO: Check for shoutcast/icecast
 
                 elif not content_type.startswith(('audio/', 'video/')):
                     log.warning("Questionable content-type \"{}\" for url {}".format(content_type, song_url))
@@ -140,6 +141,7 @@ class Playlist(EventEmitter, Serializable):
 
         # TODO: Extract this to its own function
         if info['extractor'] in ['generic', 'Dropbox']:
+            log.debug('Detected a generic extractor, or Dropbox')
             try:
                 headers = await get_header(self.bot.aiosession, info['url'])
                 content_type = headers.get('CONTENT-TYPE')
@@ -155,9 +157,9 @@ class Playlist(EventEmitter, Serializable):
                         # How does a server say `application/ogg` what the actual fuck
                         raise ExtractionError("Invalid content type \"%s\" for url %s" % (content_type, song_url))
 
-                elif content_type.startswith('text/html'):
-                    log.warning("Got text/html for content-type, this might be a stream")
-                    pass # TODO: Check for shoutcast/icecast
+                elif content_type.startswith('text/html') and info['extractor'] == 'generic':
+                    log.warning("Got text/html for content-type, this might be a stream.")
+                    return await self.add_stream_entry(song_url, info=info, **meta)  # TODO: Check for shoutcast/icecast
 
                 elif not content_type.startswith(('audio/', 'video/')):
                     log.warning("Questionable content-type \"{}\" for url {}".format(content_type, song_url))
