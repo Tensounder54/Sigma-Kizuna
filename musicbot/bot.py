@@ -1458,6 +1458,7 @@ class MusicBot(discord.Client):
             The first timezone is the original timezone the time is in.
             The second timezone is the timezone you wish to convert to.
         """
+        #Parse time first
         if time_in:
             time_parsed = time_in.split(":")
             try:
@@ -1469,6 +1470,7 @@ class MusicBot(discord.Client):
                 raise exceptions.CommandError("This is not a valid time!", expire_in=20)
         else:
             raise exceptions.CommandError("You did not specify a time!", expire_in=20)
+        #Now parse from timezone and separate into hours and minutes, and get the combined minute version
         if timezone1:
             timezone1 = timezone1.upper()
             try:
@@ -1487,14 +1489,21 @@ class MusicBot(discord.Client):
                     timezone1_hour = timezone1_parsed[0]
                     timezone1_hour = int(timezone1_hour[3:len(timezone1_hour)])
                     timezone1_minute = int(timezone1_parsed[1])
+                    if timezone1_hour < 0:
+                        timezone1_combined = timezone1_hour * 60 - timezone1_minute
+                    elif timezone1_hour > 0:
+                        timezone1_combined = timezone1_hour * 60 + timezone1_minute
+                    elif timezone1_hour == 0:
+                        timezone1_combined = 0
                 except ValueError:
                     raise exceptions.CommandError("Timezone dictionary error.", expire_in=20)
             else:
                 try:
                     timezone1_hour = int(timezone1[3:len(timezone1)])
+                    timezone1_combined = timezone1_hour * 60
                 except ValueError:
                     raise exceptions.CommandError("Could not parse timezone.", expire_in=20)
-                timezone1_minute = 0
+            #Do the same with timezone 2, make sure it's nested in timezone1 check
             if timezone2:
                 timezone2 = timezone2.upper()
                 try:
@@ -1513,37 +1522,43 @@ class MusicBot(discord.Client):
                         timezone2_hour = timezone2_parsed[0]
                         timezone2_hour = int(timezone2_hour[3:len(timezone2_hour)])
                         timezone2_minute = int(timezone2_parsed[1])
+                        if timezone2_hour < 0:
+                            timezone2_combined = timezone2_hour * 60 - timezone2_minute
+                        elif timezone2_hour > 0:
+                            timezone2_combined = timezone2_hour * 60 + timezone2_minute
+                        elif timezone2_hour == 0:
+                            timezone2_combined = 0;
                     except ValueError:
                         raise exceptions.CommandError("Timezone dictionary error.", expire_in=20)
                 else:
                     try:
                         timezone2_hour = int(timezone2[3:len(timezone2)])
+                        timezone2_combined = timezone2_hour * 60
                     except ValueError:
                         raise exceptions.CommandError("Could not parse timezone.", expire_in=20)
-                    timezone2_minute = 0
-
+                    
                 #Catch all the different scenarios that could happen
                 if timezone1_hour == 0:
-                    difference = timezone2_hour
+                    difference = timezone2_combined
                 elif timezone2_hour == 0:
                     if timezone1_hour < timezone2_hour:
-                        difference = abs(timezone1_hour)
+                        difference = abs(timezone1_combined)
                     elif timezone1_hour > timezone2_hour:
-                        difference = -timezone1_hour
+                        difference = -timezone1_combined
                 elif timezone1_hour < 0 and timezone2_hour < 0:
-                    difference = abs(timezone1_hour) - abs(timezone2_hour)
+                    difference = abs(timezone1_combined) - abs(timezone2_combined)
                 elif timezone1_hour < 0 and timezone2_hour > 0:
-                    difference = abs(timezone1_hour) + abs(timezone2_hour)
+                    difference = abs(timezone1_combined) + abs(timezone2_combined)
                 elif timezone1_hour > 0 and timezone2_hour < 0:
-                    difference = -(abs(timezone1_hour) + abs(timezone2_hour))
+                    difference = -(abs(timezone1_combined) + abs(timezone2_combined))
                 elif timezone1_hour > 0 and timezone2_hour > 0:
-                    difference = abs(timezone1_hour - timezone2_hour)
-                difference_minute = (timezone1_minute + timezone2_minute) % 60
-                #print(difference)
-                #print(difference_minute)
-                hour = (hour + difference) % 24
-                minute = (minute + difference_minute) % 60
-
+                    difference = abs(timezone1_combined - timezone2_combined)
+                
+                converted_time = hour * 60 + minute + difference
+                hour = int(converted_time / 60)
+                minute = converted_time % 60
+                #print(converted_time)
+               
                 #I'm lazy, probably a better way to do this
                 if minute == 0:
                     minute = str(minute) + "0"
@@ -1988,6 +2003,7 @@ class MusicBot(discord.Client):
         log.info(args)
         parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
         parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
+        parsedargs = parsedargs.trim()
         log.info(parsedargs)
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
@@ -2020,6 +2036,7 @@ class MusicBot(discord.Client):
         log.info(args)
         parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
         parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
+        parsedargs = parsedargs.trim()
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
@@ -2067,7 +2084,9 @@ class MusicBot(discord.Client):
         msg.set_footer(text="Sugoi!")
         await self.send_message(channel, embed=msg)
 
-
+    async def cmd_kick(self, message, server, mentions):
+        #do something here
+        pass
 
 ######################################################################################################################################
 
