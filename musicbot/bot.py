@@ -1474,7 +1474,7 @@ class MusicBot(discord.Client):
         if timezone1:
             timezone1 = timezone1.upper()
             try:
-                if re.search('(UTC)(\+|\-)(\d{2})(:\d{2})?', timezone1):
+                if re.search('(UTC)(\+|\-)(\d{1,2})(:\d{2})?', timezone1):
                     if find_key(timezone_dict, timezone1):
                         pass
                     else:
@@ -1556,6 +1556,8 @@ class MusicBot(discord.Client):
                 
                 converted_time = hour * 60 + minute + difference
                 hour = int(converted_time / 60)
+                if hour < 0:
+                    hour = 24 - hour
                 minute = converted_time % 60
                 #print(converted_time)
                
@@ -2003,7 +2005,6 @@ class MusicBot(discord.Client):
         log.info(args)
         parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
         parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
-        parsedargs = parsedargs.trim()
         log.info(parsedargs)
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
