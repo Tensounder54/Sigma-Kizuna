@@ -1558,6 +1558,8 @@ class MusicBot(discord.Client):
                 hour = int(converted_time / 60)
                 if hour < 0:
                     hour = 24 + hour
+                if hour >= 24:
+                    hour = 24 - hour
                 minute = converted_time % 60
                 #print(converted_time)
                
@@ -2037,7 +2039,6 @@ class MusicBot(discord.Client):
         log.info(args)
         parsedargs = re.sub('<@!?\d{17,18}>', '', args).strip()
         parsedargs = re.sub('<@&!?\d{17,18}>', '', args).strip()
-        parsedargs = parsedargs.trim()
         if (not message.role_mentions and not parsedargs) or not message.mentions:
             raise exceptions.CommandError("Invalid arguments specified!")
         for member in message.mentions:
