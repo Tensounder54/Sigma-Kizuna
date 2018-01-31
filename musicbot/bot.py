@@ -1556,10 +1556,11 @@ class MusicBot(discord.Client):
                 
                 converted_time = hour * 60 + minute + difference
                 hour = int(converted_time / 60)
+                #Make sure time isn't reported in negative time (because that doesn't exist) OR >24 (because that also doesn't exist)
                 if hour < 0:
                     hour = 24 + hour
                 if hour >= 24:
-                    hour = 24 - hour
+                    hour = abs(24 - hour)
                 minute = converted_time % 60
                 #print(converted_time)
                
