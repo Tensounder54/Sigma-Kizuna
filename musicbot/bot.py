@@ -1265,7 +1265,6 @@ class MusicBot(discord.Client):
         """Provides a basic template for embeds"""
         e = discord.Embed(colour=0x1abc9c)
         e.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
-        e.set_thumbnail(url=self.user.avatar_url)
         e.set_footer(text="Sugoi!")
         return e
 
@@ -1369,13 +1368,13 @@ class MusicBot(discord.Client):
             return Response("Autorole disabled", reply=False, delete_after=20)
         #print(self.autorole)
 
-    async def cmd_purge(self, channel, message, user_mentions, leftover_args, num= None):
+    async def cmd_purge(self, channel, message, user_mentions, leftover_args, usermentions, num= None):
         """
         Usage:
             {command_prefix}purge [number]
         Deletes the previous # of messages from the channel.
         """
-        
+
         if user_mentions:
             for user in user_mentions:
                 def user_check(m):
@@ -2062,6 +2061,7 @@ class MusicBot(discord.Client):
         Displays bot stats.
         """
         msg = _gen_embed()
+        msg.set_thumbnail(url=self.user.avatar_url)
         msg.add_field(name="Author", value="Neon#4792")
         msg.add_field(name="BotID", value=self.user.id)
         msg.add_field(name="Songs Played", value=player.songs_played)
@@ -3565,7 +3565,7 @@ class MusicBot(discord.Client):
         self.message_count += 1
 
         message_content = message.content.strip()
-        
+
         if "281807963147075584" in message.raw_mentions and message.author != self.user:  
             parsedmessage = re.sub('<@!?\d{18}>', '', message_content).strip()
             msg = ["Hello!", "Hiya!", "Hi <3", "Did someone say my name?", "That's my name!", "You called for me?", "What's up, %s?" % message.author.mention, "Boo.", "Hi there, %s. Need me to kill anyone?" % message.author.mention]
@@ -3592,9 +3592,6 @@ class MusicBot(discord.Client):
         if message.author == self.user:
             log.warning("Ignoring command from myself ({})".format(message.content))
             return
-
-        if self.config.bound_channels and message.channel.id not in self.config.bound_channels and not message.channel.is_private:
-            return  # if I want to log this I just move it under the prefix check
 
         command, *args = message_content.split(' ')  # Uh, doesn't this break prefixes with spaces in them (it doesn't, config parser already breaks them)
         command = command[len(self.config.command_prefix):].lower().strip()
