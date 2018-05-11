@@ -2060,12 +2060,19 @@ class MusicBot(discord.Client):
             {command_prefix}stats
         Displays bot stats.
         """
-        msg = self._gen_embed()
-        msg.set_thumbnail(url=self.user.avatar_url)
-        msg.add_field(name="Author", value="Neon#4792")
-        msg.add_field(name="BotID", value=self.user.id)
-        msg.add_field(name="Songs Played", value=player.songs_played)
-        msg.add_field(name="Messages", value=str(self.message_count) + ' (' + '%.2f'%(self.message_count / (time.time()-self.uptime)) +'/sec)')
+        def _gen_embed(self):
+        """Provides a basic template for embeds"""
+        e = discord.Embed(colour=0x1abc9c)
+        e.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
+        e.set_footer(text="Sugoi!")
+        return e
+        
+        content = self._gen_embed()
+        content.set_thumbnail(url=self.user.avatar_url)
+        content.add_field(name="Author", value="Neon#4792")
+        content.add_field(name="BotID", value=self.user.id)
+        content.add_field(name="Songs Played", value=player.songs_played)
+        content.add_field(name="Messages", value=str(self.message_count) + ' (' + '%.2f'%(self.message_count / (time.time()-self.uptime)) +'/sec)')
         process = psutil.Process(os.getpid())
         mem = process.memory_full_info()
         mem = mem.uss / 1000000
@@ -2076,7 +2083,7 @@ class MusicBot(discord.Client):
         hour = ctime // 3600
         ctime %= 3600
         minutes = ctime // 60
-        msg.add_field(name="Uptime", value="%d days\n%d hours\n%d minutes" % (day, hour, minutes))
+        content.add_field(name="Uptime", value="%d days\n%d hours\n%d minutes" % (day, hour, minutes))
         await self.safe_send_message(channel, msg, expire_in=60)
 
     async def cmd_kick(self, message, server, mentions):
