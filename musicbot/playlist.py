@@ -29,7 +29,6 @@ class Playlist(EventEmitter, Serializable):
         self.loop = bot.loop
         self.downloader = bot.downloader
         self.entries = deque()
-        self.locked = False
 
     def __iter__(self):
         return iter(self.entries)
@@ -38,16 +37,23 @@ class Playlist(EventEmitter, Serializable):
         return len(self.entries)
 
     def shuffle(self):
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
-
         shuffle(self.entries)
 
     def clear(self):
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
-
         self.entries.clear()
+        
+    def get_entry_at_index(self, index):
+        self.entries.rotate(-index)
+        entry = self.entries[0]
+        self.entries.rotate(index)
+        return entry
+        
+    def delete_entry_at_index(self, index):
+        self.entries.rotate(-index)
+        entry = self.entries.popleft()
+        self.entries.rotate(index)
+        return entry
+
 
     async def add_entry(self, song_url, **meta):
         """
@@ -58,8 +64,6 @@ class Playlist(EventEmitter, Serializable):
             :param song_url: The song url to add to the playlist.
             :param meta: Any additional metadata to add to the playlist entry.
         """
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
 
         try:
             info = await self.downloader.extract_info(self.loop, song_url, download=False)
@@ -83,7 +87,6 @@ class Playlist(EventEmitter, Serializable):
                 headers = await get_header(self.bot.aiosession, info['url'])
                 content_type = headers.get('CONTENT-TYPE')
                 log.debug("Got content type {}".format(content_type))
-
             except Exception as e:
                 log.warning("Failed to get content type for url {} ({})".format(song_url, e))
                 content_type = None
@@ -112,6 +115,55 @@ class Playlist(EventEmitter, Serializable):
         self._add_entry(entry)
         return entry, len(self.entries)
 
+    async def add_stream_entry(self, song_url, info=None, **meta):
+        if info is None:
+            info = {'title': song_url, 'extractor': None}
+
+            try:
+                info = await self.downloader.extract_info(self.loop, song_url, download=False)
+
+            except DownloadError as e:
+                if e.exc_info[0] == UnsupportedError:  # ytdl doesn't like it but its probably a stream
+                    log.debug("Assuming content is a direct stream")
+
+                elif e.exc_info[0] == URLError:
+                    if os.path.exists(os.path.abspath(song_url)):
+                        raise ExtractionError("This is not a stream, this is a file path.")
+
+                    else:  # it might be a file path that just doesn't exist
+                        raise ExtractionError("Invalid input: {0.exc_info[0]}: {0.exc_info[1].reason}".format(e))
+
+                else:
+                    # traceback.print_exc()
+                    raise ExtractionError("Unknown error: {}".format(e))
+
+            except Exception as e:
+                log.error('Could not extract information from {} ({}), falling back to direct'.format(song_url, e), exc_info=True)
+
+        if info.get('is_live') is None and info.get('extractor', None) is not 'generic':  # wew hacky
+            raise ExtractionError("This is not a stream.")
+
+        dest_url = song_url
+        if info.get('extractor'):
+            dest_url = info.get('url')
+
+        if info.get('extractor', None) == 'twitch:stream':  # may need to add other twitch types
+            title = info.get('description')
+        else:
+            title = info.get('title', 'Untitled')
+
+        # TODO: A bit more validation, "~stream some_url" should not just say :ok_hand:
+
+        entry = StreamPlaylistEntry(
+            self,
+            song_url,
+            title,
+            destination = dest_url,
+            **meta
+        )
+        self._add_entry(entry)
+        return entry, len(self.entries)
+
     async def sub_entry(self, song_url, pos, **meta):
         """
             Validates and adds a song_url to be played. This does not start the download of the song.
@@ -121,9 +173,6 @@ class Playlist(EventEmitter, Serializable):
             :param song_url: The song url to add to the playlist.
             :param meta: Any additional metadata to add to the playlist entry.
         """
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
-
         try:
             info = await self.downloader.extract_info(self.loop, song_url, download=False)
         except Exception as e:
@@ -175,56 +224,6 @@ class Playlist(EventEmitter, Serializable):
         self._sub_entry(entry,pos)
         return entry, pos
 
-    async def add_stream_entry(self, song_url, info=None, **meta):
-
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
-
-        if info is None:
-            info = {'title': song_url, 'extractor': None}
-
-            try:
-                info = await self.downloader.extract_info(self.loop, song_url, download=False)
-
-            except DownloadError as e:
-                if e.exc_info[0] == UnsupportedError: # ytdl doesn't like it but its probably a stream
-                    log.debug("Assuming content is a direct stream")
-
-                elif e.exc_info[0] == URLError:
-                    if os.path.exists(os.path.abspath(song_url)):
-                        raise ExtractionError("This is not a stream, this is a file path.")
-
-                    else: # it might be a file path that just doesn't exist
-                        raise ExtractionError("Invalid input: {0.exc_info[0]}: {0.exc_info[1].reason}".format(e))
-
-                else:
-                    # traceback.print_exc()
-                    raise ExtractionError("Unknown error: {}".format(e))
-
-            except Exception as e:
-                log.error('Could not extract information from {} ({}), falling back to direct'.format(song_url, e), exc_info=True)
-
-        dest_url = song_url
-        if info.get('extractor'):
-            dest_url = info.get('url')
-
-        if info.get('extractor', None) == 'twitch:stream': # may need to add other twitch types
-            title = info.get('description')
-        else:
-            title = info.get('title', 'Untitled')
-
-        # TODO: A bit more validation, "~stream some_url" should not just say :ok_hand:
-
-        entry = StreamPlaylistEntry(
-            self,
-            song_url,
-            title,
-            destination = dest_url,
-            **meta
-        )
-        self._add_entry(entry)
-        return entry, len(self.entries)
-
     async def import_from(self, playlist_url, **meta):
         """
             Imports the songs from `playlist_url` and queues them to be played.
@@ -234,10 +233,6 @@ class Playlist(EventEmitter, Serializable):
             :param playlist_url: The playlist url to be cut into individual urls and added to the playlist
             :param meta: Any additional metadata to add to the playlist entry
         """
-
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
-
         position = len(self.entries) + 1
         entry_list = []
 
@@ -290,9 +285,6 @@ class Playlist(EventEmitter, Serializable):
             :param meta: Any additional metadata to add to the playlist entry
         """
 
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
-
         try:
             info = await self.downloader.safe_extract_info(self.loop, playlist_url, download=False, process=False)
         except Exception as e:
@@ -334,9 +326,6 @@ class Playlist(EventEmitter, Serializable):
             :param playlist_url: The playlist url to be cut into individual urls and added to the playlist
             :param meta: Any additional metadata to add to the playlist entry
         """
-
-        if self.locked:
-            raise PermissionsError("The playlist is currently locked")
 
         try:
             info = await self.downloader.safe_extract_info(self.loop, playlist_url, download=False, process=False)
