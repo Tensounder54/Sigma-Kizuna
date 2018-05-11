@@ -62,6 +62,13 @@ def find_key(dic, val):
     except:
         return False
 
+def _gen_embed(self):
+        """Provides a basic template for embeds"""
+        e = discord.Embed(colour=0x1abc9c)
+        e.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
+        e.set_footer(text="Sugoi!")
+        return e
+
 class MusicBot(discord.Client):
     def __init__(self, config_file=None, perms_file=None):
         try:
@@ -1260,13 +1267,6 @@ class MusicBot(discord.Client):
             print(flush=True)
 
         # t-t-th-th-that's all folks!
-
-    def _gen_embed(self):
-        """Provides a basic template for embeds"""
-        e = discord.Embed(colour=0x1abc9c)
-        e.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
-        e.set_footer(text="Sugoi!")
-        return e
 
 #####################################################
 
