@@ -2060,14 +2060,9 @@ class MusicBot(discord.Client):
             {command_prefix}stats
         Displays bot stats.
         """
-        def _gen_embed(self):
-        """Provides a basic template for embeds"""
-        e = discord.Embed(colour=0x1abc9c)
-        e.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
-        e.set_footer(text="Sugoi!")
-        return e
-        
-        content = self._gen_embed()
+        content = discord.Embed(colour=0x1abc9c)
+        content.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
+        content.set_footer(text="Sugoi!")
         content.set_thumbnail(url=self.user.avatar_url)
         content.add_field(name="Author", value="Neon#4792")
         content.add_field(name="BotID", value=self.user.id)
@@ -2076,7 +2071,7 @@ class MusicBot(discord.Client):
         process = psutil.Process(os.getpid())
         mem = process.memory_full_info()
         mem = mem.uss / 1000000
-        msg.add_field(name="Memory Usage", value='%.2f'%(mem) + "MB")
+        content.add_field(name="Memory Usage", value='%.2f'%(mem) + "MB")
         ctime = float(time.time()-self.uptime)
         day = ctime // (24 * 3600)
         ctime = ctime % (24 * 3600)
