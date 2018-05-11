@@ -1368,7 +1368,7 @@ class MusicBot(discord.Client):
             return Response("Autorole disabled", reply=False, delete_after=20)
         #print(self.autorole)
 
-    async def cmd_purge(self, channel, message, user_mentions, leftover_args, usermentions, num= None):
+    async def cmd_purge(self, channel, message, user_mentions, leftover_args, num = None, usermentions = None):
         """
         Usage:
             {command_prefix}purge [number]
