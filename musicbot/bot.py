@@ -1261,9 +1261,17 @@ class MusicBot(discord.Client):
 
         # t-t-th-th-that's all folks!
 
+    def _gen_embed(self):
+        """Provides a basic template for embeds"""
+        e = discord.Embed(colour=0x1abc9c)
+        e.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
+        e.set_thumbnail(url=self.user.avatar_url)
+        e.set_footer(text="Sugoi!")
+        return e
+
 #####################################################
 
-"""
+    """
 
     Custom Commands
     Code written by NeonLights10, 2017 (C) 
@@ -2075,14 +2083,6 @@ class MusicBot(discord.Client):
         #do something here
         pass
 
-    def _gen_embed(self):
-        """Provides a basic template for embeds"""
-        e = discord.Embed(colour=0x1abc9c)
-        e.set_author(name="Sigma v" + BOTVERSION, icon_url=self.user.avatar_url)
-        e.set_thumbnail(url=self.user.avatar_url)
-        e.set_footer(text="Sugoi!")
-        return e
-
     async def cmd_resetplaylist(self, player, channel):
         """
         Usage:
@@ -2832,11 +2832,11 @@ class MusicBot(discord.Client):
                     url=player.current_entry.url
                 )
 
-        if thumbnail:
-            self.server_specific_data[server]['last_np_msg'] = await self.
-        else:
-            self.server_specific_data[server]['last_np_msg'] = await self.safe_send_message(channel, np_text)
-            await self._manual_delete_check(message)
+            if thumbnail:
+                self.server_specific_data[server]['last_np_msg'] = await self.safe_send_file(channel, np_text, thumbnail)
+            else:
+                self.server_specific_data[server]['last_np_msg'] = await self.safe_send_message(channel, np_text)
+                await self._manual_delete_check(message)
         else:
             return Response(
                 self.str.get('cmd-np-none', 'There are no songs queued! Queue something with {0}play.') .format(self.config.command_prefix),
