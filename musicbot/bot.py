@@ -2060,7 +2060,7 @@ class MusicBot(discord.Client):
             {command_prefix}stats
         Displays bot stats.
         """
-        msg = _gen_embed()
+        msg = self._gen_embed()
         msg.set_thumbnail(url=self.user.avatar_url)
         msg.add_field(name="Author", value="Neon#4792")
         msg.add_field(name="BotID", value=self.user.id)
