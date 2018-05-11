@@ -1385,7 +1385,7 @@ class MusicBot(discord.Client):
                     except ValueError:
                         raise exceptions.CommandError("Invalid number specified.", expire_in=20)
 
-                    deleted = await self.purge_from(channel, limit=num, check=user_check)
+                    deleted = await self.purge_from(channel, limit=num+1, check=user_check)
                     msg = "The last {} messages by {} were purged".format(len(deleted), user.name)
                     return Response(msg, reply=False, delete_after=20)
         if num:
