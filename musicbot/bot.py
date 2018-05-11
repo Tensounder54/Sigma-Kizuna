@@ -2079,7 +2079,7 @@ class MusicBot(discord.Client):
         ctime %= 3600
         minutes = ctime // 60
         content.add_field(name="Uptime", value="%d days\n%d hours\n%d minutes" % (day, hour, minutes))
-        await self.safe_send_message(channel, msg, expire_in=60)
+        await self.safe_send_message(channel, content, expire_in=60)
 
     async def cmd_kick(self, message, server, mentions):
         #do something here
