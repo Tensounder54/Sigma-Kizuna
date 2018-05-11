@@ -1,5 +1,7 @@
 '''
+
 If this is running then python is obviously installed, but we need to make sure that python3 is installed.
+
 What we need to do:
     0. (optional) Check disk space
         0.1: The same env checks in run.py?
@@ -17,9 +19,11 @@ What we need to do:
     4: Git clone and clean out non arch related stuff (run scripts, bins/ on non-windows)
     5: Install requirements.txt packages (if everything is ok then no errors should occur)
     6. Copy configs and prompt the user for something (maybe)
+
 The OSX specific steps might be a bit different so we just need to pay special attention to those steps
 Remember to make sure the user knows the script might prompt for password
 Print the command beforehand just so they know whats happening
+
 When the script runs the user should be greeted with some text and a press [enter/whatever] to continue prompt
 '''
 
@@ -132,6 +136,7 @@ Finding lib dev headers:
     1. Get include dirs and search for headers
         "echo | gcc -xc++ -E -v -" and parse for include dirs
         linux subprocess.check_output("find /usr[/local]/include -iname 'ffi.h'", shell=True) (find /usr/include /usr/local/include ...?)
+
     2. Have gcc deal with it and check the error output
         gcc -lffi (Fail: cannot find -lffi) vs (Success: ...  undefined reference to `main')
 """

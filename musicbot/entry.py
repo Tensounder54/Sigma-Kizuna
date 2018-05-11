@@ -52,6 +52,7 @@ class BasePlaylistEntry(Serializable):
             asyncio.ensure_future(self._download())
             self._waiting_futures.append(future)
 
+        log.debug('Created future for {0}'.format(self.filename))
         return future
 
     def _for_each_future(self, cb):
@@ -87,8 +88,8 @@ class URLPlaylistEntry(BasePlaylistEntry):
         self.title = title
         self.duration = duration
         self.expected_filename = expected_filename
-        self.filename_thumbnail = None
         self.meta = meta
+        self.filename_thumbnail = None
 
         self.download_folder = self.playlist.downloader.download_folder
 
@@ -121,7 +122,7 @@ class URLPlaylistEntry(BasePlaylistEntry):
             url = data['url']
             title = data['title']
             duration = data['duration']
-            downloaded = data['downloaded']
+            downloaded = data['downloaded'] if playlist.bot.config.save_videos else False
             filename = data['filename'] if downloaded else None
             filename_thumbnail = data['filename_thumbnail'] if downloaded else None
             expected_filename = data['expected_filename']
@@ -241,10 +242,10 @@ class URLPlaylistEntry(BasePlaylistEntry):
             # What the fuck do I do now?
 
         self.filename = unhashed_fname = self.playlist.downloader.ytdl.prepare_filename(result)
-
+        
         imgPattern = re.compile(self.filename.lstrip(self.download_folder + os.sep).rsplit('.', 1)[0] + '(\.(jpg|jpeg|png|gif|bmp))$', re.IGNORECASE)
         self.filename_thumbnail = next(os.path.join(self.download_folder, f) for f in os.listdir(self.download_folder) if imgPattern.search(f))
-
+        
         if hash:
             # insert the 8 last characters of the file hash to the file name to ensure uniqueness
             self.filename = md5sum(unhashed_fname, 8).join('-.').join(unhashed_fname.rsplit('.', 1))
