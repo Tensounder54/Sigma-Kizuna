@@ -1311,14 +1311,18 @@ class MusicBot(discord.Client):
         else:
             msg = self.user.name + " gives %s a soft hug <:heartmodern:328603582993661982>" % (author.mention)
 
-        await self.safe_send_message(channel, msg)
-        
-        '''params = {'api_key' = '', 'tag' = 'hug'}
         async with aiohttp.ClientSession() as session:
-        async with session.get('https://api.giphy.com/v1/gifs/random', params=params) as resp:
-           do something with the thing idk'''
-
-        await self.safe_send_file(channel, None, expire_in=30)
+            async with session.get('https://nekos.life/api/v2/img/hug') as resp:
+                rjson = await resp.json()
+                content = discord.Embed(colour=0x1abc9c)
+                content.set_footer(text="Sugoi!")
+                url = rjson.get('url')
+                #something something 2 positional parameters so i have to do this extra variable assignment
+                content.set_image(url=url)
+                content.description = msg
+                await self.safe_send_message(channel, content, expire_in=45)    
+    
+        
 
     async def cmd_yikes(self, message):
         return Response("Yikes! 😬", reply=False, delete_after=30)
