@@ -105,6 +105,9 @@ class MusicBot(discord.Client):
         self.db = mclient[self.database_name]
         self.dbservers = db.servers
 
+        for server in self.servers:
+            self._check_document(server, server.id)
+
         self._setup_logging()
 
         log.info('Starting MusicBot {}'.format(BOTVERSION))
@@ -259,9 +262,27 @@ class MusicBot(discord.Client):
             dhandler.setFormatter(logging.Formatter('{asctime}:{levelname}:{name}: {message}', style='{'))
             dlogger.addHandler(dhandler)
 
-    def _initialize_document():
+    def _initialize_document(server, id):
+        users = set()
+        for member in server.members:
+            for group in permissions.groups:
+                if "Moderator" == group.name:
+                    moderator = group
+                if "Admin" == group.name:
+                    admin = group
+            for role in member.roles:
+                if role.id in moderator.granted_to_roles or member.id in admin.user_list:
+                    users.add(member)
+        post = {'server_id': id,
+                'autorole': None,
+                'admins': users,
+                'muted': set(),
+                'slowmode': false}
+        dbservers.insert_one(post)
 
-    def _check_document():
+    def _check_document(server, id):
+        if dbservers.find_one(id) == None:
+            self._initialize_document(id)
 
     @staticmethod
     def _check_if_empty(vchannel: discord.Channel, *, excluding_me=True, excluding_deaf=False):
