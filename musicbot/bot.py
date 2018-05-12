@@ -1292,8 +1292,8 @@ class MusicBot(discord.Client):
         Hug somebody!
         If no recipient is specified, Sigma-chan will hug you <3
         """
-        thumbnail = os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))
-        time.sleep(.2) #welcome to jenky solutions part 10
+        #thumbnail = os.path.join('data/gifs/', random.choice(os.listdir(GIF_CACHE_PATH)))
+        #time.sleep(.2) #welcome to jenky solutions part 10
 
         if user_mentions and len(user_mentions) == 1:
             msg = "%s hugged %s!" % (author.mention, user_mentions[0].mention)
@@ -1318,7 +1318,7 @@ class MusicBot(discord.Client):
         async with session.get('https://api.giphy.com/v1/gifs/random', params=params) as resp:
            do something with the thing idk'''
 
-        await self.safe_send_file(channel, None, thumbnail, expire_in=30)
+        await self.safe_send_file(channel, None, expire_in=30)
 
     async def cmd_yikes(self, message):
         return Response("Yikes! 😬", reply=False, delete_after=30)
