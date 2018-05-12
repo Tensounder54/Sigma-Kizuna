@@ -26,6 +26,7 @@ from functools import wraps
 from textwrap import dedent
 from datetime import timedelta
 from collections import defaultdict
+from pymongo import MongoClient
 
 from discord.enums import ChannelType
 from discord.ext.commands.bot import _get_variable
@@ -86,6 +87,7 @@ class MusicBot(discord.Client):
         self.message_count = 0      
         self.autoassignrole = False     
         self.autorole = {"default": "default"}
+        self.database_name = "Valhalla"
 
         self.config = Config(config_file)
         self.permissions = Permissions(perms_file, grant_all=[self.config.owner_id])
@@ -96,6 +98,12 @@ class MusicBot(discord.Client):
 
         self.aiolocks = defaultdict(asyncio.Lock)
         self.downloader = downloader.Downloader(download_folder='audio_cache')
+
+        log.info(f'Establishing connection to MongoDB database {self.database_name}')
+
+        self.mclient = MongoClient()
+        self.db = mclient[self.database_name]
+        self.dbservers = db.servers
 
         self._setup_logging()
 
@@ -250,6 +258,10 @@ class MusicBot(discord.Client):
             dhandler = logging.FileHandler(filename='logs/discord.log', encoding='utf-8', mode='w')
             dhandler.setFormatter(logging.Formatter('{asctime}:{levelname}:{name}: {message}', style='{'))
             dlogger.addHandler(dhandler)
+
+    def _initialize_document():
+
+    def _check_document():
 
     @staticmethod
     def _check_if_empty(vchannel: discord.Channel, *, excluding_me=True, excluding_deaf=False):
@@ -1898,12 +1910,12 @@ class MusicBot(discord.Client):
                     return await self.cmd_play(player, channel, author, permissions, leftover_args, e.use_url)
 
                 reply_text = "Substituted **%s** with **%s** at position %s"
-                btext = entry.title
-
+                btext1 = old_entry.title
+                btext2 = entry.title
 
             if position == 1 and player.is_stopped:
                 position = self.str.get('cmd-play-next', 'Up next!')
-                reply_text %= (btext, position)
+                reply_text %= (btext2, position)
 
             else:
                 try:
@@ -1913,7 +1925,7 @@ class MusicBot(discord.Client):
                     traceback.print_exc()
                     time_until = ''
 
-                reply_text %= (btext, position, ftimedelta(time_until))
+                reply_text %= (btext, btext2, position, ftimedelta(time_until))
 
         return Response(reply_text, delete_after=30)
 
