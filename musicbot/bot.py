@@ -1898,12 +1898,13 @@ class MusicBot(discord.Client):
                     return await self.cmd_play(player, channel, author, permissions, leftover_args, e.use_url)
 
                 reply_text = "Substituted **%s** with **%s** at position %s"
-                btext = entry.title
+                btext1 = old_entry.title
+                btext2 = entry.title
 
 
             if position == 1 and player.is_stopped:
                 position = self.str.get('cmd-play-next', 'Up next!')
-                reply_text %= (btext, position)
+                reply_text %= (btext2, position)
 
             else:
                 try:
@@ -1913,7 +1914,7 @@ class MusicBot(discord.Client):
                     traceback.print_exc()
                     time_until = ''
 
-                reply_text %= (btext, position, ftimedelta(time_until))
+                reply_text %= (btext, btext2, position, ftimedelta(time_until))
 
         return Response(reply_text, delete_after=30)
 
